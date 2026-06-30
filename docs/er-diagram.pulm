@@ -1,0 +1,148 @@
+@startuml
+' ER-диаграмма для платформы технических собеседований
+
+entity "User" as users {
+  * Id : INT <<PK>>
+  --
+  Email : VARCHAR(256) <<UK>>
+  PasswordHash : VARCHAR(255)
+  FullName : VARCHAR(200)
+  IsActive : BOOLEAN
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+  IsDeleted : BOOLEAN
+}
+
+entity "UserRoles" as user_roles {
+  * UserId : INT <<PK,FK>>
+  * RoleName : VARCHAR(50) <<PK>>
+}
+
+entity "Candidate" as candidates {
+  * Id : INT <<PK>>
+  --
+  FullName : VARCHAR(200)
+  Phone : VARCHAR(20)
+  City : VARCHAR(100)
+  Education : TEXT
+  PreviousJob : VARCHAR(200)
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+  IsDeleted : BOOLEAN
+}
+
+entity "Skill" as skills {
+  * Id : INT <<PK>>
+  --
+  Name : VARCHAR(100) <<UK>>
+  Category : VARCHAR(50)
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+  IsDeleted : BOOLEAN
+}
+
+entity "CandidateSkill" as candidate_skills {
+  * CandidateId : INT <<PK,FK>>
+  * SkillId : INT <<PK,FK>>
+  ProficiencyLevel : INT
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+}
+
+candidates ||--o{ candidate_skills
+skills ||--o{ candidate_skills
+
+entity "Vacancy" as vacancies {
+  * Id : INT <<PK>>
+  --
+  Title : VARCHAR(200)
+  Description : TEXT
+  Department : VARCHAR(100)
+  IsActive : BOOLEAN
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+  IsDeleted : BOOLEAN
+}
+
+entity "Application" as applications {
+  * Id : INT <<PK>>
+  --
+  CandidateId : INT <<FK>>
+  VacancyId : INT <<FK>>
+  Status : ApplicationStatus
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+  IsDeleted : BOOLEAN
+}
+
+enum "ApplicationStatus" as app_status {
+  Unscheduled
+  Scheduled
+  Passed
+  Archived
+}
+
+entity "Interview" as interviews {
+  * Id : INT <<PK>>
+  --
+  ApplicationId : INT <<FK>>
+  ScheduledAt : TIMESTAMP
+  Comments : TEXT  
+  InterviewDecision : InterviewDecision
+}
+
+enum "InterviewDecision" as interview_decision {
+  Pending
+  Approved
+  Rejected
+}
+
+entity "InterviewStage" as interview_stages {
+  * Id : INT <<PK>>
+  --
+  InterviewId : INT <<FK>>
+  StageName : VARCHAR(100)
+  Duration : INT
+  Description : TEXT
+  OrderNumber : INT
+}
+
+interviews ||--o{ interview_stages
+
+entity "Competency" as competencies {
+  * Id : INT <<PK>>
+  --
+  Name : VARCHAR(100)
+  Description : TEXT
+  MaxScore : INT
+  IsActive : BOOLEAN
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+  IsDeleted : BOOLEAN
+}
+
+entity "CompetencyScore" as competency_scores {
+  * Id : INT <<PK>>
+  --
+  InterviewId : INT <<FK>>
+  CompetencyId : INT <<FK>>
+  Score : INT
+  Comment : TEXT
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+}
+
+users ||--o{ user_roles
+
+candidates ||--o{ applications
+vacancies ||--o{ applications
+
+applications ||--|| interviews
+
+interviews }o--|| users : "CreatedByUserId"
+interviews }o--|| users : "DecidedByUserId"
+
+interviews ||--o{ competency_scores
+competencies ||--o{ competency_scores
+
+@enduml
