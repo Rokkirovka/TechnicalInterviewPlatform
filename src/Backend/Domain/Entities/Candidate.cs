@@ -7,7 +7,7 @@ public class Candidate : BaseEntity
     public string City { get; set; } = string.Empty;
     public string Education { get; set; } = string.Empty;
     public string PreviousJob { get; set; } = string.Empty;
-
+    
     public virtual ICollection<CandidateSkill> CandidateSkills { get; set; } = new List<CandidateSkill>();
-    public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
+    public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 }
