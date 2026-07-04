@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Extensions;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="logger"></param>
 public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IExceptionHandler
 {
     private readonly ILogger<CustomExceptionHandler> _logger = logger;

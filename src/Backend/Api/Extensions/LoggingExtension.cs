@@ -3,6 +3,9 @@ using Serilog;
 
 namespace Api.Extensions;
 
+/// <summary>
+/// 
+/// </summary>
 public static class LoggingExtension
 {
     /// <summary>
