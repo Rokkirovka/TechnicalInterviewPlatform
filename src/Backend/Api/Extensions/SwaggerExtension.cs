@@ -24,19 +24,20 @@ public static class SwaggerExtension
 
             options.IncludeXmlComments(xmlPath);
 
-            options.AddSecurityDefinition(builder.Configuration["Swagger:Definition:Id"], new OpenApiSecurityScheme()
+            var securitySchemeId = builder.Configuration["Swagger:Definition:Id"] ?? "JWT";
+            
+            options.AddSecurityDefinition(securitySchemeId, new OpenApiSecurityScheme()
             {
                 Name = builder.Configuration["Swagger:Definition:Name"],
                 Description = builder.Configuration["Swagger:Definition:Description"],
                 Type = SecuritySchemeType.Http,
                 Scheme = "Bearer",
-                BearerFormat = "JWT",
-                In = ParameterLocation.Header,
+                BearerFormat = "JWT"
             });
 
-            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
             {
-                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+                [new OpenApiSecuritySchemeReference(securitySchemeId)] = []
             });
         });
     }
