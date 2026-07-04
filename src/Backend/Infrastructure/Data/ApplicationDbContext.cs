@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Infrastructure.Auth.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
@@ -25,6 +26,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<InterviewDeletionLog> InterviewDeletionLogs { get; set; }
     public DbSet<CommentDeletionLog> CommentDeletionLogs { get; set; }
     public DbSet<CompetencyDeletionLog> CompetencyDeletionLogs { get; set; }
+    
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -125,16 +128,27 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(cs => cs.CompetencyId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<RefreshToken>()
+            .HasOne(rt => rt.User)
+            .WithMany()
+            .HasForeignKey(rt => rt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Login)
             .IsUnique();
-
+        
         modelBuilder.Entity<Skill>()
             .HasIndex(s => s.Name)
             .IsUnique();
 
         modelBuilder.Entity<Role>()
             .HasIndex(r => r.Name)
+            .IsUnique();
+        
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => rt.TokenHash)
             .IsUnique();
 
         ConfigureDeletionLog<UserDeletionLog, User>(modelBuilder);
