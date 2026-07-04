@@ -1,0 +1,30 @@
+using Application;
+using Domain;
+using Infrastructure.Auth.Helpers;
+
+namespace Infrastructure.Auth;
+
+public class AuthService(
+    TokenService tokenService,
+    IUserRepository userRepository, 
+    PasswordHasher passwordHasher
+    ) : IAuthService
+{
+    public async Task<LoginResult> LoginAsync(string login, string password, CancellationToken ct = default)
+    {
+        var user = await userRepository.GetByLoginAsync(login, ct);
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException("Invalid login or password");
+        }
+
+        if (!passwordHasher.IsPasswordVerified(user, password))
+        {
+            throw new UnauthorizedAccessException("Invalid login or password");
+        }
+        
+        // ?: можно ввести у пользователя поле LastLogin и обновлять его тут
+        
+        return await tokenService.GenerateTokensAsync(user, ct);
+    }
+}
