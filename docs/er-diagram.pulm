@@ -4,13 +4,12 @@
 entity "User" as users {
   * Id : INT <<PK>>
   --
-  Email : VARCHAR(256) <<UK>>
+  Login : VARCHAR(256) <<UK>>
   PasswordHash : VARCHAR(255)
   FullName : VARCHAR(200)
   IsActive : BOOLEAN
   CreatedAt : TIMESTAMP
   UpdatedAt : TIMESTAMP
-  IsDeleted : BOOLEAN
 }
 
 entity "UserRoles" as user_roles {
@@ -28,7 +27,6 @@ entity "Candidate" as candidates {
   PreviousJob : VARCHAR(200)
   CreatedAt : TIMESTAMP
   UpdatedAt : TIMESTAMP
-  IsDeleted : BOOLEAN
 }
 
 entity "Skill" as skills {
@@ -38,16 +36,23 @@ entity "Skill" as skills {
   Category : VARCHAR(50)
   CreatedAt : TIMESTAMP
   UpdatedAt : TIMESTAMP
-  IsDeleted : BOOLEAN
 }
 
 entity "CandidateSkill" as candidate_skills {
   * CandidateId : INT <<PK,FK>>
   * SkillId : INT <<PK,FK>>
-  ProficiencyLevel : INT
+  Level : ProficiencyLevel
   CreatedAt : TIMESTAMP
   UpdatedAt : TIMESTAMP
 }
+
+enum "ProficiencyLevel" as proficiency_level {
+  Beginner
+  Middle
+  High
+}
+
+candidate_skills --> proficiency_level
 
 candidates ||--o{ candidate_skills
 skills ||--o{ candidate_skills
@@ -61,41 +66,44 @@ entity "Vacancy" as vacancies {
   IsActive : BOOLEAN
   CreatedAt : TIMESTAMP
   UpdatedAt : TIMESTAMP
-  IsDeleted : BOOLEAN
-}
-
-entity "Application" as applications {
-  * Id : INT <<PK>>
-  --
-  CandidateId : INT <<FK>>
-  VacancyId : INT <<FK>>
-  Status : ApplicationStatus
-  CreatedAt : TIMESTAMP
-  UpdatedAt : TIMESTAMP
-  IsDeleted : BOOLEAN
-}
-
-enum "ApplicationStatus" as app_status {
-  Unscheduled
-  Scheduled
-  Passed
-  Archived
 }
 
 entity "Interview" as interviews {
   * Id : INT <<PK>>
   --
-  ApplicationId : INT <<FK>>
+  CandidateId : INT <<FK>>
+  VacancyId : INT <<FK>>
   ScheduledAt : TIMESTAMP
-  Comments : TEXT  
-  InterviewDecision : InterviewDecision
+  Status : InterviewStatus
+  CreatedByUserId : INT <<FK>>
+  AssignedToUserId : INT <<FK>>
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
 }
 
-enum "InterviewDecision" as interview_decision {
-  Pending
+enum "InterviewStatus" as interview_status {
+  Scheduled
+  Passed
   Approved
   Rejected
+  ToNextStage
 }
+
+entity "Comment" as comments {
+  * Id : INT <<PK>>
+  --
+  InterviewId : INT <<FK>>
+  AuthorId : INT <<FK>>
+  Content : TEXT
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+}
+
+candidates ||--o{ interviews
+vacancies ||--o{ interviews
+interviews ||--o{ comments
+comments }o--|| users
+interviews --> interview_status
 
 entity "InterviewStage" as interview_stages {
   * Id : INT <<PK>>
@@ -114,12 +122,20 @@ entity "Competency" as competencies {
   --
   Name : VARCHAR(100)
   Description : TEXT
-  MaxScore : INT
   IsActive : BOOLEAN
   CreatedAt : TIMESTAMP
   UpdatedAt : TIMESTAMP
-  IsDeleted : BOOLEAN
 }
+
+entity "VacancyCompetency" as vacancy_competencies {
+  * VacancyId : INT <<PK,FK>>
+  * CompetencyId : INT <<PK,FK>>
+  CreatedAt : TIMESTAMP
+  UpdatedAt : TIMESTAMP
+}
+
+vacancies ||--o{ vacancy_competencies
+competencies ||--o{ vacancy_competencies
 
 entity "CompetencyScore" as competency_scores {
   * Id : INT <<PK>>
@@ -134,15 +150,81 @@ entity "CompetencyScore" as competency_scores {
 
 users ||--o{ user_roles
 
-candidates ||--o{ applications
-vacancies ||--o{ applications
-
-applications ||--|| interviews
-
-interviews }o--|| users : "CreatedByUserId"
-interviews }o--|| users : "DecidedByUserId"
+interviews }o--|| users
+interviews }o--|| users
 
 interviews ||--o{ competency_scores
 competencies ||--o{ competency_scores
+
+entity "UserDeletionLog" as user_deletion_logs {
+  * Id : INT <<PK>>
+  --
+  DeletedByUserId : INT <<FK>>
+  EntityId : INT
+  DeletionReason : TEXT
+  DeletedAt : TIMESTAMP
+}
+
+entity "CandidateDeletionLog" as candidate_deletion_logs {
+  * Id : INT <<PK>>
+  --
+  DeletedByUserId : INT <<FK>>
+  EntityId : INT
+  DeletionReason : TEXT
+  DeletedAt : TIMESTAMP
+}
+
+entity "SkillDeletionLog" as skill_deletion_logs {
+  * Id : INT <<PK>>
+  --
+  DeletedByUserId : INT <<FK>>
+  EntityId : INT
+  DeletionReason : TEXT
+  DeletedAt : TIMESTAMP
+}
+
+entity "VacancyDeletionLog" as vacancy_deletion_logs {
+  * Id : INT <<PK>>
+  --
+  DeletedByUserId : INT <<FK>>
+  EntityId : INT
+  DeletionReason : TEXT
+  DeletedAt : TIMESTAMP
+}
+
+entity "InterviewDeletionLog" as interview_deletion_logs {
+  * Id : INT <<PK>>
+  --
+  DeletedByUserId : INT <<FK>>
+  EntityId : INT
+  DeletionReason : TEXT
+  DeletedAt : TIMESTAMP
+}
+
+entity "CommentDeletionLog" as comment_deletion_logs {
+  * Id : INT <<PK>>
+  --
+  DeletedByUserId : INT <<FK>>
+  EntityId : INT
+  DeletionReason : TEXT
+  DeletedAt : TIMESTAMP
+}
+
+entity "CompetencyDeletionLog" as competency_deletion_logs {
+  * Id : INT <<PK>>
+  --
+  DeletedByUserId : INT <<FK>>
+  EntityId : INT
+  DeletionReason : TEXT
+  DeletedAt : TIMESTAMP
+}
+
+users ||--o{ user_deletion_logs
+users ||--o{ candidate_deletion_logs
+users ||--o{ skill_deletion_logs
+users ||--o{ vacancy_deletion_logs
+users ||--o{ interview_deletion_logs
+users ||--o{ comment_deletion_logs
+users ||--o{ competency_deletion_logs
 
 @enduml
