@@ -18,13 +18,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<VacancyCompetency> VacancyCompetencies { get; set; }
     public DbSet<CompetencyScore> CompetencyScores { get; set; }
     
-    public DbSet<UserDeletionLog> UserDeletionLogs { get; set; }
-    public DbSet<CandidateDeletionLog> CandidateDeletionLogs { get; set; }
-    public DbSet<SkillDeletionLog> SkillDeletionLogs { get; set; }
-    public DbSet<VacancyDeletionLog> VacancyDeletionLogs { get; set; }
-    public DbSet<InterviewDeletionLog> InterviewDeletionLogs { get; set; }
-    public DbSet<CommentDeletionLog> CommentDeletionLogs { get; set; }
-    public DbSet<CompetencyDeletionLog> CompetencyDeletionLogs { get; set; }
+    public DbSet<DeletionLogBase<Candidate>> CandidateDeletionLogs { get; set; }
+    public DbSet<DeletionLogBase<Vacancy>> VacancyDeletionLogs { get; set; }
+    public DbSet<DeletionLogBase<Interview>> InterviewDeletionLogs { get; set; }
+    public DbSet<DeletionLogBase<Skill>> SkillDeletionLogs { get; set; }
+    public DbSet<DeletionLogBase<Competency>> CompetencyDeletionLogs { get; set; }
+    public DbSet<DeletionLogBase<Comment>> CommentDeletionLogs { get; set; }
+    public DbSet<DeletionLogBase<User>> UserDeletionLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -137,26 +137,24 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasIndex(r => r.Name)
             .IsUnique();
 
-        ConfigureDeletionLog<UserDeletionLog, User>(modelBuilder);
-        ConfigureDeletionLog<CandidateDeletionLog, Candidate>(modelBuilder);
-        ConfigureDeletionLog<SkillDeletionLog, Skill>(modelBuilder);
-        ConfigureDeletionLog<VacancyDeletionLog, Vacancy>(modelBuilder);
-        ConfigureDeletionLog<InterviewDeletionLog, Interview>(modelBuilder);
-        ConfigureDeletionLog<CommentDeletionLog, Comment>(modelBuilder);
-        ConfigureDeletionLog<CompetencyDeletionLog, Competency>(modelBuilder);
+        ConfigureDeletionLog<Candidate>(modelBuilder);
+        ConfigureDeletionLog<Vacancy>(modelBuilder);
+        ConfigureDeletionLog<Interview>(modelBuilder);
+        ConfigureDeletionLog<Skill>(modelBuilder);
+        ConfigureDeletionLog<Competency>(modelBuilder);
+        ConfigureDeletionLog<Comment>(modelBuilder);
+        ConfigureDeletionLog<User>(modelBuilder);
     }
 
-    private void ConfigureDeletionLog<TLog, TEntity>(ModelBuilder modelBuilder)
-        where TLog : DeletionLogBase<TEntity>
-        where TEntity : BaseEntity
+    private void ConfigureDeletionLog<TEntity>(ModelBuilder modelBuilder) where TEntity : BaseEntity
     {
-        modelBuilder.Entity<TLog>()
+        modelBuilder.Entity<DeletionLogBase<TEntity>>()
             .HasOne(l => l.DeletedByUser)
             .WithMany()
             .HasForeignKey(l => l.DeletedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<TLog>()
+        modelBuilder.Entity<DeletionLogBase<TEntity>>()
             .HasOne(l => l.Entity)
             .WithMany()
             .HasForeignKey(l => l.EntityId)
