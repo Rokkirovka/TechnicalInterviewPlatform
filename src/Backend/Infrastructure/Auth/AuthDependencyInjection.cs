@@ -1,6 +1,7 @@
 using Application;
 using Domain;
 using Infrastructure.Data.Repositories;
+using Infrastructure.Auth.Helpers;
 using Infrastructure.Auth.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ public static class AuthDependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<PasswordHasher>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

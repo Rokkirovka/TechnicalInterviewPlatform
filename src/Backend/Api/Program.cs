@@ -8,10 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddSerilogLogging();
 builder.AddExceptionHandler();
 builder.AddSwagger();
-builder.AddAuth();
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.AddAuth();
 
 var app = builder.Build();
 

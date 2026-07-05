@@ -5,7 +5,7 @@ using Infrastructure.Auth.Helpers;
 namespace Infrastructure.Auth;
 
 public class AuthService(
-    TokenService tokenService,
+    ITokenService tokenService,
     IUserRepository userRepository, 
     PasswordHasher passwordHasher
     ) : IAuthService
