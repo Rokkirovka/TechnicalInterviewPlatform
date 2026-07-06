@@ -1,6 +1,5 @@
 using Api.Helpers;
 using Application;
-using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Endpoints;

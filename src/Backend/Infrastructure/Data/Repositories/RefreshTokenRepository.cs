@@ -1,4 +1,5 @@
 using Infrastructure.Auth.Entities;
+using Infrastructure.Auth.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data.Repositories;

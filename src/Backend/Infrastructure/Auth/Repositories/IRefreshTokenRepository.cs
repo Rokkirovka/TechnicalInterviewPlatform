@@ -1,6 +1,6 @@
 using Infrastructure.Auth.Entities;
 
-namespace Infrastructure.Data.Repositories;
+namespace Infrastructure.Auth.Repositories;
 
 public interface IRefreshTokenRepository
 {

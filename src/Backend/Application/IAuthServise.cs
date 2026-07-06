@@ -1,3 +1,5 @@
+using Application.Dtos;
+
 namespace Application;
 
 public interface IAuthService

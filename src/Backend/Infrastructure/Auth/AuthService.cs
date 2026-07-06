@@ -11,7 +11,7 @@ public class AuthService(
     PasswordHasher passwordHasher
     ) : IAuthService
 {
-    public async Task<LoginDto> LoginAsync(string login, string password, CancellationToken ct = default)
+    public async Task<LoginResult> LoginAsync(string login, string password, CancellationToken ct = default)
     {
         var user = await userRepository.GetByLoginAsync(login);
         if (user == null)

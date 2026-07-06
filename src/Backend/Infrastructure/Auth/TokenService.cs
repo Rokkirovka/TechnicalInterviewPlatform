@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using Application;
-using Domain;
+using Application.Dtos;
+using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Auth.Entities;
 using Infrastructure.Auth.Helpers;
 using Infrastructure.Auth.Options;
-using Infrastructure.Data.Repositories;
+using Infrastructure.Auth.Repositories;
 
 namespace Infrastructure.Auth;
 
@@ -38,7 +39,7 @@ public class TokenService(
             throw new UnauthorizedAccessException("Invalid refresh token");
         }
 
-        var user = await userRepository.GetByIdAsync(storedRefreshToken.UserId, ct);
+        var user = await userRepository.GetByIdAsync(storedRefreshToken.UserId);
         if (user is not { IsActive: true })
         {
             throw new UnauthorizedAccessException("User not found or inactive");
