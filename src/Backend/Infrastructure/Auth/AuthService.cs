@@ -28,8 +28,8 @@ public class AuthService(
         return await tokenService.GenerateTokensAsync(user, ct);
     }
 
-    public async Task LogoutAsync(int userId, CancellationToken ct = default)
+    public async Task LogoutAsync(string refreshToken, CancellationToken ct = default)
     {
-        await tokenService.RevokeTokenAsync(userId, ct);
+        await tokenService.RevokeRefreshTokenAsync(refreshToken, ct);
     }
 }

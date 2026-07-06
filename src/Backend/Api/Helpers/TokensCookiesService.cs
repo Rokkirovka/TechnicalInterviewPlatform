@@ -25,11 +25,11 @@ public static class TokensCookiesService
     {
         var cookieOptions = new CookieOptions
         {
-            HttpOnly = true, 
-            Secure = true, 
+            HttpOnly = true,
+            Secure = true,
             SameSite = SameSiteMode.Strict,
             Path = CookiesPath,
-            Expires = expiresAt 
+            Expires = expiresAt
         };
         
         response.Cookies.Append(AccessTokenCookieName, accessToken, cookieOptions);
