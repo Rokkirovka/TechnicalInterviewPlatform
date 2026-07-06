@@ -10,7 +10,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
 
