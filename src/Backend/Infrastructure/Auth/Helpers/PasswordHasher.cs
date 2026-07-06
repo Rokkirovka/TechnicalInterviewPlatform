@@ -1,19 +1,20 @@
 using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Auth.Helpers;
 
 public class PasswordHasher
 {
-    private const int WorkFactor = 12;
-
+    private readonly PasswordHasher<User> _passwordHasher = new();
+    
     public string HashPassword(User user, string password)
     {
-        return BCrypt.Net.BCrypt.HashPassword(password, workFactor: WorkFactor);
+        return _passwordHasher.HashPassword(user, password);
     }
 
     public bool IsPasswordVerified(User user, string password)
     {
-        return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+        var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        return result == PasswordVerificationResult.Success;
     }
-
 }

@@ -5,13 +5,6 @@ namespace Infrastructure.Data.Repositories;
 
 public class RefreshTokenRepository(ApplicationDbContext context) : IRefreshTokenRepository
 {
-    public async Task<RefreshToken?> GetByIdAsync(int id, CancellationToken ct = default)
-    {
-        return await context.RefreshTokens
-            .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.Id == id, ct);
-    }
-
     public async Task<RefreshToken?> GetByHashedTokenAsync(string refreshToken, CancellationToken ct = default)
     {
         return await context.RefreshTokens
@@ -22,7 +15,7 @@ public class RefreshTokenRepository(ApplicationDbContext context) : IRefreshToke
     public async Task<ICollection<RefreshToken>> GetValidUserTokensAsync(int userId, CancellationToken ct = default)
     {
         return await context.RefreshTokens
-            .Where(rt => rt.UserId == userId && !rt.IsUsed && !rt.IsRevoked && DateTime.UtcNow < rt.ExpiresAt)
+            .Where(rt => rt.UserId == userId && DateTime.UtcNow < rt.ExpiresAt)
             .ToListAsync(ct);
     }
 
@@ -32,17 +25,15 @@ public class RefreshTokenRepository(ApplicationDbContext context) : IRefreshToke
         await context.SaveChangesAsync(ct);
     }
 
-    public async Task MarkAsUsedAsync(RefreshToken refreshToken, CancellationToken ct = default)
+    public async Task DeleteAsync(RefreshToken refreshToken, CancellationToken ct = default)
     {
-        refreshToken.IsUsed = true;
-        refreshToken.UsedAt = DateTime.UtcNow;
+        context.Remove(refreshToken);
         await context.SaveChangesAsync(ct);
     }
-
-    public async Task MarkAsRevokedAsync(RefreshToken refreshToken, CancellationToken ct = default)
+    
+    public async Task DeleteAllAsync(int userId, CancellationToken ct = default)
     {
-        refreshToken.IsRevoked = true;
-        refreshToken.RevokedAt = DateTime.UtcNow;
-        await context.SaveChangesAsync(ct);
+        await context.RefreshTokens.Where(t => t.UserId == userId)
+            .ExecuteDeleteAsync(ct);
     }
 }

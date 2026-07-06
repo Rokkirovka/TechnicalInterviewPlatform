@@ -19,18 +19,18 @@ public class TokenService(
     public async Task<LoginResult> GenerateTokensAsync(User user, CancellationToken ct)
     {
         var accessToken = TokenGenerator.GenerateAccessToken(user, jwtSettings);
-        var refreshToken = await CreateRefreshTokenAsync(user, ct);
-        
-        return new LoginResult(accessToken, refreshToken.token, refreshToken.ExpiresAt);
+        var (token, ExpiresAt) = await CreateRefreshTokenAsync(user, ct);
+
+        return new LoginResult(accessToken, token, ExpiresAt);
     }
-    
-    public async Task<LoginResult> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)
+
+    public async Task<LoginResult> UpdateTokenAsync(string refreshToken, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
             throw new ValidationException("Refresh or access token is required");
         }
-        
+
         var hashedToken = tokenHasher.HashToken(refreshToken);
         var storedRefreshToken = await refreshTokenRepository.GetByHashedTokenAsync(hashedToken, ct);
         if (storedRefreshToken is not { IsValid: true })
@@ -44,36 +44,52 @@ public class TokenService(
             throw new UnauthorizedAccessException("User not found or inactive");
         }
 
-        await refreshTokenRepository.MarkAsRevokedAsync(storedRefreshToken, ct);        
-        
+        await refreshTokenRepository.DeleteAsync(storedRefreshToken, ct);
+
         return await GenerateTokensAsync(user, ct);
     }
 
-    public async Task RevokeTokenAsync(int userId, CancellationToken ct)
+    public async Task RevokeRefreshTokenAsync(string refreshToken, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            throw new ValidationException("Refresh token is required");
+        }
+
+        var hashedToken = tokenHasher.HashToken(refreshToken);
+        var token = await refreshTokenRepository.GetByHashedTokenAsync(hashedToken, ct);
+
+        if (token == null)
+        {
+            return;
+        }
+
+        await refreshTokenRepository.DeleteAsync(token, ct);
+    }
+
+    public async Task RevokeAllTokensAsync(int userId, CancellationToken ct)
     {
         var tokens = await refreshTokenRepository.GetValidUserTokensAsync(userId, ct);
-        
+
         foreach (var token in tokens)
         {
-            await refreshTokenRepository.MarkAsRevokedAsync(token, ct);
+            await refreshTokenRepository.DeleteAsync(token, ct);
         }
     }
-    
+
     private async Task<(string token, DateTime ExpiresAt)> CreateRefreshTokenAsync(User user, CancellationToken ct)
     {
         var token = TokenGenerator.GenerateRefreshToken();
-        
+
         var tokenHash = tokenHasher.HashToken(token);
         var refreshToken = new RefreshToken
         {
             TokenHash = tokenHash,
+            UserId = user.Id,
             User = user,
-            CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays),
-            IsUsed = false,
-            IsRevoked = false
         };
-        
+
         await refreshTokenRepository.StoreAsync(refreshToken, ct);
         return (token, refreshToken.ExpiresAt);
     }
