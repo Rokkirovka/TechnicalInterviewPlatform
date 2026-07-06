@@ -74,7 +74,7 @@ public static class AuthEndpoints
         }
         context.Response.ClearTokensCookie();
         
-        var result = await tokenService.RefreshTokenAsync(refreshToken, ct);
+        var result = await tokenService.UpdateTokenAsync(refreshToken, ct);
 
         context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt);
 
@@ -87,9 +87,11 @@ public static class AuthEndpoints
         CancellationToken ct
         )
     {
-        var userId = context.User.GetUserId();
-        
-        await authService.LogoutAsync(userId, ct);
+        var refreshToken = context.Request.GetRefreshTokenCookie();
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            await authService.LogoutAsync(refreshToken, ct);
+        }
         
         context.Response.ClearTokensCookie();
 

@@ -2,7 +2,7 @@ using Domain.Entities;
 
 namespace Infrastructure.Auth.Entities;
 
-public class RefreshToken : BaseEntity
+public class RefreshToken
 {
     public string TokenHash { get; set; } = string.Empty;
     
@@ -10,9 +10,6 @@ public class RefreshToken : BaseEntity
     
     public int UserId { get; set; }
     public User User { get; set; } = null!;
-    
-    public bool IsRevoked { get; set; }
-    public DateTime? RevokedAt { get; set; }
 
-    public bool IsValid => !IsRevoked && DateTime.UtcNow < ExpiresAt;
+    public bool IsValid => DateTime.UtcNow < ExpiresAt;
 }

@@ -6,7 +6,7 @@ namespace Infrastructure.Auth.Helpers;
 public class PasswordHasher
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
-
+    
     public string HashPassword(User user, string password)
     {
         return _passwordHasher.HashPassword(user, password);
@@ -17,4 +17,5 @@ public class PasswordHasher
         var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
         return result == PasswordVerificationResult.Success;
     }
+
 }
