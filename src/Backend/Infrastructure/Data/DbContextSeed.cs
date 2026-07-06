@@ -1,12 +1,17 @@
 using Domain.Entities;
 using Infrastructure.Auth.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data;
 
 public static class DbContextSeed
 {
-    public static async Task SeedAsync(ApplicationDbContext context, PasswordHasher passwordHasher)
+    public static async Task SeedAsync(
+        ApplicationDbContext context, 
+        PasswordHasher passwordHasher, 
+        IConfiguration configuration
+        )
     {
         if (await context.Roles.AnyAsync())
         {
@@ -26,7 +31,9 @@ public static class DbContextSeed
             FullName = "Администратор",
             IsActive = true
         };
-        adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "SuperB0t!");
+        
+        var adminPassword = configuration["Admin:DefaultPassword"] ?? "SuperB0t!";
+        adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, adminPassword);
         adminUser.Roles.Add(adminRole);
 
         context.Users.Add(adminUser);

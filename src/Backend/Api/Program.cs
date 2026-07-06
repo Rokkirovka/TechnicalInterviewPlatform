@@ -25,7 +25,8 @@ using (var scope = app.Services.CreateScope())
     await context.Database.MigrateAsync();
     
     var passwordHasher = scope.ServiceProvider.GetRequiredService<PasswordHasher>();
-    await DbContextSeed.SeedAsync(context, passwordHasher);
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    await DbContextSeed.SeedAsync(context, passwordHasher, configuration);
 }
 
 if (app.Environment.IsDevelopment())
