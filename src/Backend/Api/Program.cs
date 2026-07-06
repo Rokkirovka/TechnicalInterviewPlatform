@@ -1,7 +1,11 @@
 using Api.Endpoints;
 using Api.Extensions;
 using Infrastructure.Auth.Helpers;
+using Application.Interfaces;
+using Application.Mappings;
+using Application.Services;
 using Infrastructure.Data;
+using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +20,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     ));
 
 builder.AddAuth();
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+builder.Services.AddScoped(typeof(IDeletionLogRepository<>), typeof(DeletionLogRepository<>));
+
+builder.Services.AddScoped<ICandidateService, CandidateService>();
+builder.Services.AddScoped<IVacancyService, VacancyService>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+builder.Services.AddScoped<ICompetencyService, CompetencyService>();
+builder.Services.AddScoped<IInterviewService, InterviewService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IInterviewStageService, InterviewStageService>();
+builder.Services.AddScoped<ICompetencyScoreService, CompetencyScoreService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile));
 
 var app = builder.Build();
 
