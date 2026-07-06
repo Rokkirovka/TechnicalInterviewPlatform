@@ -17,15 +17,15 @@ public static class AuthEndpoints
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/auth")
-            .WithTags("Authentication")
-            .AllowAnonymous();
+            .WithTags("Authentication");
 
         group.MapPost("/login", LoginAsync)
             .WithName("Login")
             .WithSummary("Log in")
             .WithDescription("Log in into account with company login and password")
             .Produces(StatusCodes.Status200OK)
-            .ProducesProblem(StatusCodes.Status401Unauthorized);
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .AllowAnonymous();
 
         group.MapPost("/refresh", RefreshTokenAsync)
             .WithName("Refresh")
@@ -33,7 +33,8 @@ public static class AuthEndpoints
             .WithDescription("Refresh user access and refresh tokens via his refresh token")
             .Produces(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status401Unauthorized);
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .AllowAnonymous();
         
         group.MapPost("/logout", LogoutAsync)
             .WithName("Logout")
