@@ -1,5 +1,5 @@
 using Application;
-using Domain;
+using Application.Interfaces;
 using Infrastructure.Auth.Helpers;
 
 namespace Infrastructure.Auth;
@@ -12,7 +12,7 @@ public class AuthService(
 {
     public async Task<LoginResult> LoginAsync(string login, string password, CancellationToken ct = default)
     {
-        var user = await userRepository.GetByLoginAsync(login, ct);
+        var user = await userRepository.GetByLoginAsync(login);
         if (user == null)
         {
             throw new UnauthorizedAccessException("Invalid login or password");

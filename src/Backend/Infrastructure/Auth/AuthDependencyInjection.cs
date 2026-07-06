@@ -1,8 +1,10 @@
 using Application;
+using Application.Interfaces;
 using Domain;
-using Infrastructure.Data.Repositories;
 using Infrastructure.Auth.Helpers;
 using Infrastructure.Auth.Options;
+using Infrastructure.Auth.Repositories;
+using Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,16 +17,15 @@ public static class AuthDependencyInjection
         IConfiguration configuration
         )
     {
-        services.AddSingleton(
-            configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!);
+        services.AddSingleton(configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!);
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<PasswordHasher>();
         services.AddScoped<TokenHasher>();
-        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }

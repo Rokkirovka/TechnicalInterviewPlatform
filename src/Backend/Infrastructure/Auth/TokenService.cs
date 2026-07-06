@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using Application;
-using Domain;
+using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Auth.Entities;
 using Infrastructure.Auth.Helpers;
 using Infrastructure.Auth.Options;
-using Infrastructure.Data.Repositories;
+using Infrastructure.Repositories;
 
 namespace Infrastructure.Auth;
 
@@ -19,7 +19,7 @@ public class TokenService(
     public async Task<LoginResult> GenerateTokensAsync(User user, CancellationToken ct)
     {
         var accessToken = TokenGenerator.GenerateAccessToken(user, jwtSettings);
-        var refreshToken = await CreateRefreshTokenAsync(user, ct);
+        var refreshToken = await CreateRefreshTokenAsync(user);
         
         return new LoginResult(accessToken, refreshToken.token, refreshToken.ExpiresAt);
     }
@@ -38,7 +38,7 @@ public class TokenService(
             throw new UnauthorizedAccessException("Invalid refresh token");
         }
 
-        var user = await userRepository.GetByIdAsync(storedRefreshToken.UserId, ct);
+        var user = await userRepository.GetByIdAsync(storedRefreshToken.UserId);
         if (user is not { IsActive: true })
         {
             throw new UnauthorizedAccessException("User not found or inactive");
@@ -59,7 +59,7 @@ public class TokenService(
         }
     }
     
-    private async Task<(string token, DateTime ExpiresAt)> CreateRefreshTokenAsync(User user, CancellationToken ct)
+    private async Task<(string token, DateTime ExpiresAt)> CreateRefreshTokenAsync(User user)
     {
         var token = TokenGenerator.GenerateRefreshToken();
         
@@ -70,11 +70,10 @@ public class TokenService(
             User = user,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays),
-            IsUsed = false,
             IsRevoked = false
         };
         
-        await refreshTokenRepository.StoreAsync(refreshToken, ct);
+        await refreshTokenRepository.AddAsync(refreshToken);
         return (token, refreshToken.ExpiresAt);
     }
 }
