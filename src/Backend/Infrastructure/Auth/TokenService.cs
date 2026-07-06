@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Application;
+using Application.Dtos;
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Auth.Entities;
@@ -16,15 +17,15 @@ public class TokenService(
     JwtSettings jwtSettings
     ) : ITokenService
 {
-    public async Task<LoginResult> GenerateTokensAsync(User user, CancellationToken ct)
+    public async Task<LoginDto> GenerateTokensAsync(User user, CancellationToken ct)
     {
         var accessToken = TokenGenerator.GenerateAccessToken(user, jwtSettings);
         var refreshToken = await CreateRefreshTokenAsync(user);
         
-        return new LoginResult(accessToken, refreshToken.token, refreshToken.ExpiresAt);
+        return new LoginDto(accessToken, refreshToken.token, refreshToken.ExpiresAt);
     }
     
-    public async Task<LoginResult> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)
+    public async Task<LoginDto> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
         {

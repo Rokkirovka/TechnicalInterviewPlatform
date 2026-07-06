@@ -1,4 +1,5 @@
 using Application;
+using Application.Dtos;
 using Application.Interfaces;
 using Infrastructure.Auth.Helpers;
 
@@ -10,7 +11,7 @@ public class AuthService(
     PasswordHasher passwordHasher
     ) : IAuthService
 {
-    public async Task<LoginResult> LoginAsync(string login, string password, CancellationToken ct = default)
+    public async Task<LoginDto> LoginAsync(string login, string password, CancellationToken ct = default)
     {
         var user = await userRepository.GetByLoginAsync(login);
         if (user == null)
