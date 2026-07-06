@@ -22,7 +22,7 @@ public class RefreshTokenRepository(ApplicationDbContext context) : IRefreshToke
     public async Task<ICollection<RefreshToken>> GetValidUserTokensAsync(int userId, CancellationToken ct = default)
     {
         return await context.RefreshTokens
-            .Where(rt => rt.UserId == userId && rt.IsValid)
+            .Where(rt => rt.UserId == userId && !rt.IsUsed && !rt.IsRevoked && DateTime.UtcNow < rt.ExpiresAt)
             .ToListAsync(ct);
     }
 

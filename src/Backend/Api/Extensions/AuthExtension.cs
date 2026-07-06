@@ -11,6 +11,7 @@ namespace Api.Extensions;
 /// </summary>
 public static class AuthExtension
 {
+    // TODO: вынести из класса
     private const string AccessTokenCookieName = "access_token";
 
     /// <summary>

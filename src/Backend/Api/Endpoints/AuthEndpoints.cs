@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
 using Api.Helpers;
 using Application;
 using Microsoft.AspNetCore.Mvc;
@@ -55,18 +53,11 @@ public static class AuthEndpoints
         CancellationToken ct
         )
     {
-        try
-        {
-            var result = await authService.LoginAsync(loginRequest.Login, loginRequest.Password, ct);
-            
-            context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt);
-            
-            return Results.Ok(new { message = "You successfully logged in." });
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Results.Unauthorized();
-        }
+        var result = await authService.LoginAsync(loginRequest.Login, loginRequest.Password, ct);
+
+        context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt);
+
+        return Results.Ok(new { message = "You successfully logged in." });
     }
 
     private static async Task<IResult> RefreshTokenAsync(
@@ -81,39 +72,23 @@ public static class AuthEndpoints
             return Results.Unauthorized();
         }
         context.Response.ClearTokensCookie();
+        
+        var result = await tokenService.RefreshTokenAsync(refreshToken, ct);
 
-        try
-        {
-            var result = await tokenService.RefreshTokenAsync(refreshToken, ct);
+        context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt);
 
-            context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt);
-
-            return Results.Ok(new { message = "You successfully refresh user's tokens" });
-        }
-        catch (ValidationException)
-        {
-            return Results.BadRequest();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Results.Unauthorized();
-        }
+        return Results.Ok(new { message = "You successfully refresh user's tokens" });
     }
 
     private static async Task<IResult> LogoutAsync(
-        ITokenService tokenService,
+        IAuthService authService,
         HttpContext context,
         CancellationToken ct
         )
     {
-        var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null)
-        {
-            return Results.Unauthorized();
-        }
-        var userId = int.Parse(userIdClaim);
+        var userId = context.User.GetUserId();
         
-        await tokenService.RevokeTokenAsync(userId, ct);
+        await authService.LogoutAsync(userId, ct);
         
         context.Response.ClearTokensCookie();
 

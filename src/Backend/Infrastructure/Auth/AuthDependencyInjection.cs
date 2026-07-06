@@ -23,6 +23,7 @@ public static class AuthDependencyInjection
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<PasswordHasher>();
+        services.AddScoped<TokenHasher>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

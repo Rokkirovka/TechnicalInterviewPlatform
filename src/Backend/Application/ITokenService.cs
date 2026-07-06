@@ -7,6 +7,4 @@ public interface ITokenService
     Task<LoginResult> GenerateTokensAsync(User user, CancellationToken ct);
     Task<LoginResult> RefreshTokenAsync(string refreshToken, CancellationToken ct);
     Task RevokeTokenAsync(int userId, CancellationToken ct);
-    string CreateAccessToken(User user);
-    Task<(string token, DateTime ExpiresAt)> CreateRefreshTokenAsync(User user, CancellationToken ct);
 }

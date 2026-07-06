@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Domain.Entities;
 using Infrastructure.Auth.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -9,8 +10,10 @@ namespace Infrastructure.Auth.Helpers;
 
 public class TokenGenerator
 {
-    public static string GenerateAccessToken(IEnumerable<Claim> claims, JwtSettings settings)
+    public static string GenerateAccessToken(User user, JwtSettings settings)
     {
+        var claims = ClaimService.ConfigureUserClaims(user);
+        
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         
