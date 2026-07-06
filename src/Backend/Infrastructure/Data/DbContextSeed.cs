@@ -18,9 +18,21 @@ public static class DbContextSeed
             return;
         }
 
-        var adminRole = new Role { Name = "Administrator", Description = "Полный доступ к системе" };
-        var hrRole = new Role { Name = "HR", Description = "Управление кандидатами и интервью" };
-        var solverRole = new Role { Name = "Решала", Description = "Проведение интервью и оценка компетенций" };
+        var adminRole = new Role
+        {
+            Name = "Administrator", 
+            Description = "Полный доступ к системе"
+        };
+        var hrRole = new Role
+        {
+            Name = "HumanResources", 
+            Description = "Управление кандидатами и Проведение интервью"
+        };
+        var solverRole = new Role
+        {
+            Name = "DecisionMaker", 
+            Description = "Принятие итогово решения на основе матрицы компетенций и комментариев от HR"
+        };
 
         context.Roles.AddRange(adminRole, hrRole, solverRole);
         await context.SaveChangesAsync();
@@ -32,7 +44,8 @@ public static class DbContextSeed
             IsActive = true
         };
         
-        var adminPassword = configuration["Admin:DefaultPassword"] ?? "SuperB0t!";
+        var adminPassword = configuration["Admin:DefaultPassword"] 
+                            ?? throw new InvalidOperationException("Admin password is required");
         adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, adminPassword);
         adminUser.Roles.Add(adminRole);
 
