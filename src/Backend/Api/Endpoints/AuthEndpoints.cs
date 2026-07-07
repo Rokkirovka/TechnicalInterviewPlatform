@@ -46,24 +46,6 @@ public static class AuthEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .RequireAuthorization();
-
-        group.MapGet("/admin-only", () => "This endpoint is Admin only")
-            .RequireAuthorization(RoleBasedPolicies.Admin);
-        
-        group.MapGet("/hr", () => "This endpoint is for hr")
-            .RequireAuthorization(RoleBasedPolicies.Hr);
-        
-        group.MapGet("/resolver", () => "This endpoint is for desition maker")
-            .RequireAuthorization(RoleBasedPolicies.DecisionMaker);
-        
-        group.MapGet("/admin-hr", () => "This endpoint is for hr and admin")
-            .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
-        
-        group.MapGet("/admin-resolver", () => "This is for admin and decision maker")
-            .RequireAuthorization(RoleBasedPolicies.AdminAndDecisionMaker);
-        
-        group.MapGet("/for-all", () => "This endpoint is for all")
-            .RequireAuthorization(RoleBasedPolicies.Authenticated);
         
         return endpoints;
     }
