@@ -21,6 +21,15 @@ public class JwtSettings
     /// 
     /// </summary>
     public string Audience { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public string AccessTokenCookieName { get; set; } = "access_token";
+    /// <summary>
+    /// 
+    /// </summary>
+    public string RefreshTokenCookieName { get; set; } = "refresh_token";
     /// <summary>
     /// 
     /// </summary>

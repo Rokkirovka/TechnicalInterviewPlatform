@@ -1,3 +1,5 @@
+using Api.Auth.Options;
+
 namespace Api.Helpers;
 
 /// <summary>
@@ -5,10 +7,8 @@ namespace Api.Helpers;
 /// </summary>
 public static class TokensCookiesService
 {
-    private const string RefreshTokenCookieName = "refresh_token";
-    private const string AccessTokenCookieName = "access_token";
     private const string CookiesPath = "/";
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -16,11 +16,13 @@ public static class TokensCookiesService
     /// <param name="accessToken"></param>
     /// <param name="refreshToken"></param>
     /// <param name="expiresAt"></param>
+    /// <param name="jwtSettings"></param>
     public static void SetTokensCookie(
         this HttpResponse response, 
         string accessToken, 
         string refreshToken, 
-        DateTime expiresAt
+        DateTime expiresAt,
+        JwtSettings jwtSettings
         )
     {
         var cookieOptions = new CookieOptions
@@ -32,15 +34,16 @@ public static class TokensCookiesService
             Expires = expiresAt
         };
         
-        response.Cookies.Append(AccessTokenCookieName, accessToken, cookieOptions);
-        response.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
+        response.Cookies.Append(jwtSettings.AccessTokenCookieName, accessToken, cookieOptions);
+        response.Cookies.Append(jwtSettings.RefreshTokenCookieName, refreshToken, cookieOptions);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="response"></param>
-    public static void ClearTokensCookie(this HttpResponse response)
+    /// <param name="jwtSettings"></param>
+    public static void ClearTokensCookie(this HttpResponse response, JwtSettings jwtSettings)
     {
         var cookieOptions = new CookieOptions
         {
@@ -50,17 +53,18 @@ public static class TokensCookiesService
             Path = CookiesPath
         };
         
-        response.Cookies.Delete(RefreshTokenCookieName, cookieOptions);
-        response.Cookies.Delete(AccessTokenCookieName, cookieOptions);
+        response.Cookies.Delete(jwtSettings.AccessTokenCookieName, cookieOptions);
+        response.Cookies.Delete(jwtSettings.RefreshTokenCookieName, cookieOptions);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="request"></param>
+    /// <param name="jwtSettings"></param>
     /// <returns></returns>
-    public static string? GetRefreshTokenCookie(this HttpRequest request)
+    public static string? GetRefreshTokenCookie(this HttpRequest request, JwtSettings jwtSettings)
     {
-        return request.Cookies[RefreshTokenCookieName];
+        return request.Cookies[jwtSettings.RefreshTokenCookieName];
     }
 }
