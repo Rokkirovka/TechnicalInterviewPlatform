@@ -2,10 +2,18 @@ using System.Security.Claims;
 using Domain.Entities;
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace Infrastructure.Auth.Helpers;
+namespace Api.Auth.Helpers;
 
-public class ClaimService
+/// <summary>
+/// 
+/// </summary>
+public static class ClaimService
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns></returns>
     public static List<Claim> ConfigureUserClaims(User user)
     {
         var claims = new List<Claim>

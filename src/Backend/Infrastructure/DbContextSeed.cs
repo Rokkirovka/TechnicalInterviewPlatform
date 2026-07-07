@@ -1,5 +1,5 @@
+using Application.Interfaces;
 using Domain.Entities;
-using Infrastructure.Auth.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -9,7 +9,7 @@ public static class DbContextSeed
 {
     public static async Task SeedAsync(
         ApplicationDbContext context, 
-        PasswordHasher passwordHasher, 
+        IPasswordHasher passwordHasher, 
         IConfiguration configuration
         )
     {

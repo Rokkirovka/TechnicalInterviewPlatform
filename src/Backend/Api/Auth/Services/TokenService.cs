@@ -1,30 +1,50 @@
 using System.ComponentModel.DataAnnotations;
+using Api.Auth.Helpers;
+using Api.Auth.Options;
 using Application;
 using Application.Dtos;
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Auth.Entities;
-using Infrastructure.Auth.Helpers;
-using Infrastructure.Auth.Options;
 using Infrastructure.Auth.Repositories;
+using Microsoft.Extensions.Options;
 
-namespace Infrastructure.Auth;
+namespace Api.Auth;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="refreshTokenRepository"></param>
+/// <param name="userRepository"></param>
+/// <param name="jwtSettings"></param>
 public class TokenService(
-    TokenHasher tokenHasher,
     IRefreshTokenRepository refreshTokenRepository,
     IUserRepository userRepository,
-    JwtSettings jwtSettings
+    IOptions<JwtSettings> jwtSettings
     ) : ITokenService
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
     public async Task<LoginResult> GenerateTokensAsync(User user, CancellationToken ct)
     {
-        var accessToken = TokenGenerator.GenerateAccessToken(user, jwtSettings);
+        var accessToken = TokenGenerator.GenerateAccessToken(user, jwtSettings.Value);
         var (token, ExpiresAt) = await CreateRefreshTokenAsync(user, ct);
 
         return new LoginResult(accessToken, token, ExpiresAt);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="ValidationException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
     public async Task<LoginResult> UpdateTokenAsync(string refreshToken, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
@@ -32,7 +52,7 @@ public class TokenService(
             throw new ValidationException("Refresh or access token is required");
         }
 
-        var hashedToken = tokenHasher.HashToken(refreshToken);
+        var hashedToken = TokenHasher.HashToken(refreshToken);
         var storedRefreshToken = await refreshTokenRepository.GetByHashedTokenAsync(hashedToken, ct);
         if (storedRefreshToken is not { IsValid: true })
         {
@@ -50,6 +70,13 @@ public class TokenService(
         return await GenerateTokensAsync(user, ct);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="ValidationException"></exception>
     public async Task RevokeRefreshTokenAsync(string refreshToken, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
@@ -57,7 +84,7 @@ public class TokenService(
             throw new ValidationException("Refresh token is required");
         }
 
-        var hashedToken = tokenHasher.HashToken(refreshToken);
+        var hashedToken = TokenHasher.HashToken(refreshToken);
         var token = await refreshTokenRepository.GetByHashedTokenAsync(hashedToken, ct);
 
         if (token == null)
@@ -68,6 +95,12 @@ public class TokenService(
         await refreshTokenRepository.DeleteAsync(token, ct);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
     public async Task RevokeAllTokensAsync(int userId, CancellationToken ct)
     {
         var tokens = await refreshTokenRepository.GetValidUserTokensAsync(userId, ct);
@@ -82,13 +115,13 @@ public class TokenService(
     {
         var token = TokenGenerator.GenerateRefreshToken();
 
-        var tokenHash = tokenHasher.HashToken(token);
+        var tokenHash = TokenHasher.HashToken(token);
         var refreshToken = new RefreshToken
         {
             TokenHash = tokenHash,
             UserId = user.Id,
             User = user,
-            ExpiresAt = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays),
+            ExpiresAt = DateTime.UtcNow.AddDays(jwtSettings.Value.RefreshTokenExpirationDays),
         };
 
         await refreshTokenRepository.StoreAsync(refreshToken, ct);

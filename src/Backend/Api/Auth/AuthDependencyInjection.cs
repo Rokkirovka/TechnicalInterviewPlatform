@@ -1,30 +1,37 @@
+using Api.Auth.Helpers;
+using Api.Auth.Options;
+using Api.Auth.Services;
 using Application;
 using Application.Interfaces;
-using Infrastructure.Auth.Helpers;
-using Infrastructure.Auth.Options;
 using Infrastructure.Auth.Repositories;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using RefreshTokenRepository = Infrastructure.Auth.Repositories.RefreshTokenRepository;
 
-namespace Infrastructure.Auth;
+namespace Api.Auth;
 
+/// <summary>
+/// 
+/// </summary>
 public static class AuthDependencyInjection
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
     public static IServiceCollection AddAuthInfrastructure(
         this IServiceCollection services, 
         IConfiguration configuration
         )
     {
-        services.AddSingleton(configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!);
+        services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<PasswordHasher>();
-        services.AddScoped<TokenHasher>();
+        services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
         return services;
     }
