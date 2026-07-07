@@ -63,5 +63,6 @@ app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapCandidateEndpoints();
 app.MapSkillsEndpoints();
+app.MapCompetenciesEndpoints();
 
 app.Run();
