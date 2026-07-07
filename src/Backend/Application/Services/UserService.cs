@@ -9,6 +9,7 @@ public class UserService(
     IRepository<User> repository,
     IDeletionLogRepository<User> deletionLogRepository,
     IRepository<Role> roleRepository,
+    IPasswordHasher passwordHasher,
     IMapper mapper)
     : BaseService<User, UserDto, CreateUserRequest, UpdateUserRequest>(
         repository,
@@ -23,7 +24,7 @@ public class UserService(
             throw new Exception($"Пользователь с логином '{request.Login}' уже существует");
 
         var user = Mapper.Map<User>(request);
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
 
         if (request.Roles.Any())
         {
@@ -62,7 +63,7 @@ public class UserService(
         if (user == null)
             throw new Exception($"Пользователь с id {request.Id} не найден");
 
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
         await Repository.UpdateAsync(user);
     }
 }

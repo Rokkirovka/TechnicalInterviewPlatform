@@ -5,7 +5,6 @@ using Api.Helpers;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Serilog;
 
 namespace Api.Endpoints;
 

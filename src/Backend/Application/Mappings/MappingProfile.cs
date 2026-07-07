@@ -11,6 +11,9 @@ public class MappingProfile : Profile
         CreateMap<User, UserDto>()
             .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles.Select(r => r.Name)));
 
+        CreateMap<CreateUserRequest, User>()
+            .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
         CreateMap<Candidate, CandidateDto>()
             .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.CandidateSkills));
         

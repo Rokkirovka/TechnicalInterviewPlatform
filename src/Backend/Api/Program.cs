@@ -60,5 +60,6 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler(); 
 app.UseAuthPipeline();
 app.MapAuthEndpoints();
+app.MapUserEndpoints();
 
 app.Run();
