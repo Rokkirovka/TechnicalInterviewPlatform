@@ -1,6 +1,9 @@
+using Api.Auth;
+using Api.Auth.Options;
 using Api.Helpers;
 using Application;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Api.Endpoints;
 
@@ -43,6 +46,24 @@ public static class AuthEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .RequireAuthorization();
+
+        group.MapGet("/admin-only", () => "This endpoint is Admin only")
+            .RequireAuthorization(RoleBasedPolicies.Admin);
+        
+        group.MapGet("/hr", () => "This endpoint is for hr")
+            .RequireAuthorization(RoleBasedPolicies.Hr);
+        
+        group.MapGet("/resolver", () => "This endpoint is for desition maker")
+            .RequireAuthorization(RoleBasedPolicies.DecisionMaker);
+        
+        group.MapGet("/admin-hr", () => "This endpoint is for hr and admin")
+            .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
+        
+        group.MapGet("/admin-resolver", () => "This is for admin and decision maker")
+            .RequireAuthorization(RoleBasedPolicies.AdminAndDecisionMaker);
+        
+        group.MapGet("/for-all", () => "This endpoint is for all")
+            .RequireAuthorization(RoleBasedPolicies.Authenticated);
         
         return endpoints;
     }
@@ -51,12 +72,13 @@ public static class AuthEndpoints
         [FromBody] LoginRequest loginRequest, 
         IAuthService authService, 
         HttpContext context,
+        IOptions<JwtSettings> jwtSettings,
         CancellationToken ct
         )
     {
         var result = await authService.LoginAsync(loginRequest.Login, loginRequest.Password, ct);
 
-        context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt);
+        context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt, jwtSettings.Value);
 
         return Results.Ok(new { message = "You successfully logged in." });
     }
@@ -64,19 +86,20 @@ public static class AuthEndpoints
     private static async Task<IResult> RefreshTokenAsync(
         ITokenService tokenService, 
         HttpContext context,
+        IOptions<JwtSettings> jwtSettings,
         CancellationToken ct
         )
     {
-        var refreshToken = context.Request.GetRefreshTokenCookie();
+        var refreshToken = context.Request.GetRefreshTokenCookie(jwtSettings.Value);
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
             return Results.Unauthorized();
         }
-        context.Response.ClearTokensCookie();
+        context.Response.ClearTokensCookie(jwtSettings.Value);
         
         var result = await tokenService.UpdateTokenAsync(refreshToken, ct);
 
-        context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt);
+        context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt, jwtSettings.Value);
 
         return Results.Ok(new { message = "You successfully refresh user's tokens" });
     }
@@ -84,16 +107,17 @@ public static class AuthEndpoints
     private static async Task<IResult> LogoutAsync(
         IAuthService authService,
         HttpContext context,
+        IOptions<JwtSettings> jwtSettings,
         CancellationToken ct
         )
     {
-        var refreshToken = context.Request.GetRefreshTokenCookie();
+        var refreshToken = context.Request.GetRefreshTokenCookie(jwtSettings.Value);
         if (!string.IsNullOrWhiteSpace(refreshToken))
         {
             await authService.LogoutAsync(refreshToken, ct);
         }
         
-        context.Response.ClearTokensCookie();
+        context.Response.ClearTokensCookie(jwtSettings.Value);
 
         return Results.NoContent();
     }
