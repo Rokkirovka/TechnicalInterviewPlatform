@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260704221050_AddRefreshToken")]
+    partial class AddRefreshToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,9 +38,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Education")
@@ -62,6 +62,35 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Candidates");
+                });
+
+            modelBuilder.Entity("Domain.Entities.CandidateDeletionLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DeletedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DeletionReason")
+                        .HasColumnType("text");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("EntityId");
+
+                    b.ToTable("CandidateDeletionLogs");
                 });
 
             modelBuilder.Entity("Domain.Entities.CandidateSkill", b =>
@@ -106,9 +135,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("InterviewId")
                         .HasColumnType("integer");
 
@@ -124,106 +150,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Competency", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Competencies");
-                });
-
-            modelBuilder.Entity("Domain.Entities.CompetencyScore", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Comment")
-                        .HasColumnType("text");
-
-                    b.Property<int>("CompetencyId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("InterviewId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompetencyId");
-
-                    b.HasIndex("InterviewId");
-
-                    b.ToTable("CompetencyScores");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Candidate>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DeletedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("DeletionReason")
-                        .HasColumnType("text");
-
-                    b.Property<int>("EntityId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeletedByUserId");
-
-                    b.HasIndex("EntityId");
-
-                    b.ToTable("CandidateDeletionLogs");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Comment>", b =>
+            modelBuilder.Entity("Domain.Entities.CommentDeletionLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -252,7 +179,36 @@ namespace Infrastructure.Migrations
                     b.ToTable("CommentDeletionLogs");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Competency>", b =>
+            modelBuilder.Entity("Domain.Entities.Competency", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Competencies");
+                });
+
+            modelBuilder.Entity("Domain.Entities.CompetencyDeletionLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -281,7 +237,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("CompetencyDeletionLogs");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Interview>", b =>
+            modelBuilder.Entity("Domain.Entities.CompetencyScore", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -289,112 +245,31 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DeletedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("DeletionReason")
+                    b.Property<string>("Comment")
                         .HasColumnType("text");
 
-                    b.Property<int>("EntityId")
+                    b.Property<int>("CompetencyId")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("InterviewId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeletedByUserId");
+                    b.HasIndex("CompetencyId");
 
-                    b.HasIndex("EntityId");
+                    b.HasIndex("InterviewId");
 
-                    b.ToTable("InterviewDeletionLogs");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Skill>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DeletedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("DeletionReason")
-                        .HasColumnType("text");
-
-                    b.Property<int>("EntityId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeletedByUserId");
-
-                    b.HasIndex("EntityId");
-
-                    b.ToTable("SkillDeletionLogs");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.User>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DeletedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("DeletionReason")
-                        .HasColumnType("text");
-
-                    b.Property<int>("EntityId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeletedByUserId");
-
-                    b.HasIndex("EntityId");
-
-                    b.ToTable("UserDeletionLogs");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Vacancy>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DeletedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("DeletionReason")
-                        .HasColumnType("text");
-
-                    b.Property<int>("EntityId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeletedByUserId");
-
-                    b.HasIndex("EntityId");
-
-                    b.ToTable("VacancyDeletionLogs");
+                    b.ToTable("CompetencyScores");
                 });
 
             modelBuilder.Entity("Domain.Entities.Interview", b =>
@@ -419,9 +294,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<int?>("DecidedByUserId")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("ScheduledAt")
                         .HasColumnType("timestamp with time zone");
@@ -450,6 +322,35 @@ namespace Infrastructure.Migrations
                     b.ToTable("Interviews");
                 });
 
+            modelBuilder.Entity("Domain.Entities.InterviewDeletionLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DeletedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DeletionReason")
+                        .HasColumnType("text");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("EntityId");
+
+                    b.ToTable("InterviewDeletionLogs");
+                });
+
             modelBuilder.Entity("Domain.Entities.InterviewStage", b =>
                 {
                     b.Property<int>("Id")
@@ -459,9 +360,6 @@ namespace Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
@@ -501,9 +399,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
@@ -538,9 +433,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -556,6 +448,35 @@ namespace Infrastructure.Migrations
                     b.ToTable("Skills");
                 });
 
+            modelBuilder.Entity("Domain.Entities.SkillDeletionLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DeletedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DeletionReason")
+                        .HasColumnType("text");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("EntityId");
+
+                    b.ToTable("SkillDeletionLogs");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -565,9 +486,6 @@ namespace Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FullName")
@@ -596,6 +514,35 @@ namespace Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Domain.Entities.UserDeletionLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DeletedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DeletionReason")
+                        .HasColumnType("text");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("EntityId");
+
+                    b.ToTable("UserDeletionLogs");
+                });
+
             modelBuilder.Entity("Domain.Entities.Vacancy", b =>
                 {
                     b.Property<int>("Id")
@@ -605,9 +552,6 @@ namespace Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Department")
@@ -654,18 +598,69 @@ namespace Infrastructure.Migrations
                     b.ToTable("VacancyCompetencies");
                 });
 
-            modelBuilder.Entity("Infrastructure.Auth.Entities.RefreshToken", b =>
+            modelBuilder.Entity("Domain.Entities.VacancyDeletionLog", b =>
                 {
-                    b.Property<string>("TokenHash")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DeletedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DeletionReason")
                         .HasColumnType("text");
 
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedByUserId");
+
+                    b.HasIndex("EntityId");
+
+                    b.ToTable("VacancyDeletionLogs");
+                });
+
+            modelBuilder.Entity("Infrastructure.Auth.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UsedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.HasKey("TokenHash");
+                    b.HasKey("Id");
 
                     b.HasIndex("TokenHash")
                         .IsUnique();
@@ -688,6 +683,25 @@ namespace Infrastructure.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("UserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.CandidateDeletionLog", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Candidate", "Entity")
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DeletedByUser");
+
+                    b.Navigation("Entity");
                 });
 
             modelBuilder.Entity("Domain.Entities.CandidateSkill", b =>
@@ -728,45 +742,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("Interview");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompetencyScore", b =>
-                {
-                    b.HasOne("Domain.Entities.Competency", "Competency")
-                        .WithMany("CompetencyScores")
-                        .HasForeignKey("CompetencyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Interview", "Interview")
-                        .WithMany("CompetencyScores")
-                        .HasForeignKey("InterviewId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Competency");
-
-                    b.Navigation("Interview");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Candidate>", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "DeletedByUser")
-                        .WithMany()
-                        .HasForeignKey("DeletedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Candidate", "Entity")
-                        .WithMany()
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DeletedByUser");
-
-                    b.Navigation("Entity");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Comment>", b =>
+            modelBuilder.Entity("Domain.Entities.CommentDeletionLog", b =>
                 {
                     b.HasOne("Domain.Entities.User", "DeletedByUser")
                         .WithMany()
@@ -785,7 +761,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("Entity");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Competency>", b =>
+            modelBuilder.Entity("Domain.Entities.CompetencyDeletionLog", b =>
                 {
                     b.HasOne("Domain.Entities.User", "DeletedByUser")
                         .WithMany()
@@ -804,80 +780,23 @@ namespace Infrastructure.Migrations
                     b.Navigation("Entity");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Interview>", b =>
+            modelBuilder.Entity("Domain.Entities.CompetencyScore", b =>
                 {
-                    b.HasOne("Domain.Entities.User", "DeletedByUser")
-                        .WithMany()
-                        .HasForeignKey("DeletedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("Domain.Entities.Competency", "Competency")
+                        .WithMany("CompetencyScores")
+                        .HasForeignKey("CompetencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Interview", "Entity")
-                        .WithMany()
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("Domain.Entities.Interview", "Interview")
+                        .WithMany("CompetencyScores")
+                        .HasForeignKey("InterviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("DeletedByUser");
+                    b.Navigation("Competency");
 
-                    b.Navigation("Entity");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Skill>", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "DeletedByUser")
-                        .WithMany()
-                        .HasForeignKey("DeletedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Skill", "Entity")
-                        .WithMany()
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DeletedByUser");
-
-                    b.Navigation("Entity");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.User>", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "DeletedByUser")
-                        .WithMany()
-                        .HasForeignKey("DeletedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.User", "Entity")
-                        .WithMany()
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DeletedByUser");
-
-                    b.Navigation("Entity");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DeletionLogBase<Domain.Entities.Vacancy>", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "DeletedByUser")
-                        .WithMany()
-                        .HasForeignKey("DeletedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Vacancy", "Entity")
-                        .WithMany()
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DeletedByUser");
-
-                    b.Navigation("Entity");
+                    b.Navigation("Interview");
                 });
 
             modelBuilder.Entity("Domain.Entities.Interview", b =>
@@ -921,6 +840,25 @@ namespace Infrastructure.Migrations
                     b.Navigation("Vacancy");
                 });
 
+            modelBuilder.Entity("Domain.Entities.InterviewDeletionLog", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Interview", "Entity")
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DeletedByUser");
+
+                    b.Navigation("Entity");
+                });
+
             modelBuilder.Entity("Domain.Entities.InterviewStage", b =>
                 {
                     b.HasOne("Domain.Entities.Interview", "Interview")
@@ -930,6 +868,44 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Interview");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SkillDeletionLog", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Skill", "Entity")
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DeletedByUser");
+
+                    b.Navigation("Entity");
+                });
+
+            modelBuilder.Entity("Domain.Entities.UserDeletionLog", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "Entity")
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DeletedByUser");
+
+                    b.Navigation("Entity");
                 });
 
             modelBuilder.Entity("Domain.Entities.VacancyCompetency", b =>
@@ -949,6 +925,25 @@ namespace Infrastructure.Migrations
                     b.Navigation("Competency");
 
                     b.Navigation("Vacancy");
+                });
+
+            modelBuilder.Entity("Domain.Entities.VacancyDeletionLog", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Vacancy", "Entity")
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DeletedByUser");
+
+                    b.Navigation("Entity");
                 });
 
             modelBuilder.Entity("Infrastructure.Auth.Entities.RefreshToken", b =>

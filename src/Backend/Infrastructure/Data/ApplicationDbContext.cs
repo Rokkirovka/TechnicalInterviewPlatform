@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Infrastructure.Auth.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
@@ -17,7 +18,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Competency> Competencies { get; set; }
     public DbSet<VacancyCompetency> VacancyCompetencies { get; set; }
     public DbSet<CompetencyScore> CompetencyScores { get; set; }
-    
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+
     public DbSet<DeletionLogBase<Candidate>> CandidateDeletionLogs { get; set; }
     public DbSet<DeletionLogBase<Vacancy>> VacancyDeletionLogs { get; set; }
     public DbSet<DeletionLogBase<Interview>> InterviewDeletionLogs { get; set; }
@@ -125,6 +127,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(cs => cs.CompetencyId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(rt => rt.TokenHash);
+
+            entity.HasOne(rt => rt.User)
+                .WithMany()
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Login)
             .IsUnique();
@@ -135,6 +147,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         modelBuilder.Entity<Role>()
             .HasIndex(r => r.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => rt.TokenHash)
             .IsUnique();
 
         ConfigureDeletionLog<Candidate>(modelBuilder);
