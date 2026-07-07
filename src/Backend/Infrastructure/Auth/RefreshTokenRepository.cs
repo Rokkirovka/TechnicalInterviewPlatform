@@ -1,8 +1,6 @@
-using Infrastructure.Auth.Entities;
-using Infrastructure.Auth.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Data.Repositories;
+namespace Infrastructure.Auth;
 
 public class RefreshTokenRepository(ApplicationDbContext context) : IRefreshTokenRepository
 {

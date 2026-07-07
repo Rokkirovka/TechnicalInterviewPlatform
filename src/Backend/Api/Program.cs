@@ -1,10 +1,9 @@
 using Api.Endpoints;
 using Api.Extensions;
-using Infrastructure.Auth.Helpers;
 using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
-using Infrastructure.Data;
+using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,7 +41,7 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await context.Database.MigrateAsync();
     
-    var passwordHasher = scope.ServiceProvider.GetRequiredService<PasswordHasher>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     await DbContextSeed.SeedAsync(context, passwordHasher, configuration);
 }

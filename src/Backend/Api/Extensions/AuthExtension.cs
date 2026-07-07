@@ -1,6 +1,6 @@
 using System.Text;
-using Infrastructure.Auth;
-using Infrastructure.Auth.Options;
+using Api.Auth;
+using Api.Auth.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,9 +11,6 @@ namespace Api.Extensions;
 /// </summary>
 public static class AuthExtension
 {
-    // TODO: вынести из класса
-    private const string AccessTokenCookieName = "access_token";
-
     /// <summary>
     /// 
     /// </summary>
@@ -54,13 +51,25 @@ public static class AuthExtension
                             return Task.CompletedTask;
                         }
 
-                        context.Token = context.Request.Cookies[AccessTokenCookieName];
+                        context.Token = context.Request.Cookies[jwtSettings.AccessTokenCookieName];
                         return Task.CompletedTask;
                     }
                 };
             });
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy(RoleBasedPolicies.Admin, policy =>
+                policy.RequireRole("Administrator"))
+            .AddPolicy(RoleBasedPolicies.Hr, policy =>
+                policy.RequireRole("HumanResources"))
+            .AddPolicy(RoleBasedPolicies.DecisionMaker, policy =>
+                policy.RequireRole("DecisionMaker"))
+            .AddPolicy(RoleBasedPolicies.AdminAndHr, policy =>
+                policy.RequireRole("Administrator", "HumanResources"))
+            .AddPolicy(RoleBasedPolicies.AdminAndDecisionMaker, policy =>
+                policy.RequireRole("Administrator", "DecisionMaker"))
+            .AddPolicy(RoleBasedPolicies.Authenticated, policy =>
+                policy.RequireAuthenticatedUser());
 
         return builder;
     }

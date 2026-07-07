@@ -1,6 +1,6 @@
 using Domain.Entities;
 
-namespace Infrastructure.Auth.Entities;
+namespace Infrastructure.Auth;
 
 public class RefreshToken
 {
