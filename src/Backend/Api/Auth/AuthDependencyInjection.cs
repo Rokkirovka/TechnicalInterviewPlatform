@@ -3,8 +3,8 @@ using Api.Auth.Options;
 using Api.Auth.Services;
 using Application;
 using Application.Interfaces;
-using Infrastructure.Auth.Repositories;
-using RefreshTokenRepository = Infrastructure.Auth.Repositories.RefreshTokenRepository;
+using Infrastructure.Auth;
+using RefreshTokenRepository = Infrastructure.Auth.RefreshTokenRepository;
 
 namespace Api.Auth;
 

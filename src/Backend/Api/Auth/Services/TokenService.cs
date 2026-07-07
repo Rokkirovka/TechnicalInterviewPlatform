@@ -5,8 +5,7 @@ using Application;
 using Application.Dtos;
 using Application.Interfaces;
 using Domain.Entities;
-using Infrastructure.Auth.Entities;
-using Infrastructure.Auth.Repositories;
+using Infrastructure.Auth;
 using Microsoft.Extensions.Options;
 
 namespace Api.Auth;

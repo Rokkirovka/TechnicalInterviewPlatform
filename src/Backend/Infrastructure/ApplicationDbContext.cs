@@ -1,8 +1,8 @@
 using Domain.Entities;
-using Infrastructure.Auth.Entities;
+using Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Data;
+namespace Infrastructure;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
