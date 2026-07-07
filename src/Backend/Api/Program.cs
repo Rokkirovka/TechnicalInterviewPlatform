@@ -62,5 +62,6 @@ app.UseAuthPipeline();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapCandidateEndpoints();
+app.MapSkillsEndpoints();
 
 app.Run();
