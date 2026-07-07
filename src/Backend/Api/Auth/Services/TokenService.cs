@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Api.Auth.Dto;
 using Api.Auth.Helpers;
 using Api.Auth.Options;
-using Application;
+using Api.Auth.Services;
 using Application.Dtos;
 using Application.Interfaces;
+using AutoMapper;
 using Domain.Entities;
 using Infrastructure.Auth;
 using Microsoft.Extensions.Options;
@@ -16,10 +18,12 @@ namespace Api.Auth;
 /// <param name="refreshTokenRepository"></param>
 /// <param name="userRepository"></param>
 /// <param name="jwtSettings"></param>
+/// <param name="mapper"></param>
 public class TokenService(
     IRefreshTokenRepository refreshTokenRepository,
     IUserRepository userRepository,
-    IOptions<JwtSettings> jwtSettings
+    IOptions<JwtSettings> jwtSettings,
+    IMapper mapper
     ) : ITokenService
 {
     /// <summary>
@@ -31,9 +35,13 @@ public class TokenService(
     public async Task<LoginResult> GenerateTokensAsync(User user, CancellationToken ct)
     {
         var accessToken = TokenGenerator.GenerateAccessToken(user, jwtSettings.Value);
-        var (token, ExpiresAt) = await CreateRefreshTokenAsync(user, ct);
+        var refresh = await CreateRefreshTokenAsync(user, ct);
 
-        return new LoginResult(accessToken, token, ExpiresAt);
+        return new LoginResult(new UpdateTokenEvent
+        {
+            Token = accessToken,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.Value.AccessTokenExpirationMinutes)
+        }, refresh, mapper.Map<UserDto>(user));
     }
 
     /// <summary>
@@ -110,7 +118,7 @@ public class TokenService(
         }
     }
 
-    private async Task<(string token, DateTime ExpiresAt)> CreateRefreshTokenAsync(User user, CancellationToken ct)
+    private async Task<UpdateTokenEvent> CreateRefreshTokenAsync(User user, CancellationToken ct)
     {
         var token = TokenGenerator.GenerateRefreshToken();
 
@@ -124,6 +132,6 @@ public class TokenService(
         };
 
         await refreshTokenRepository.StoreAsync(refreshToken, ct);
-        return (token, refreshToken.ExpiresAt);
+        return new UpdateTokenEvent { Token=token, ExpiresAt=refreshToken.ExpiresAt };
     }
 }

@@ -1,6 +1,4 @@
-using Api.Auth.Helpers;
-using Application;
-using Application.Dtos;
+using Api.Auth.Dto;
 using Application.Interfaces;
 
 namespace Api.Auth.Services;

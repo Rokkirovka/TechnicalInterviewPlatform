@@ -1,3 +1,4 @@
+using Api.Auth.Dto;
 using Api.Auth.Options;
 
 namespace Api.Helpers;
@@ -13,29 +14,33 @@ public static class TokensCookiesService
     /// 
     /// </summary>
     /// <param name="response"></param>
-    /// <param name="accessToken"></param>
-    /// <param name="refreshToken"></param>
-    /// <param name="expiresAt"></param>
+    /// <param name="access"></param>
+    /// <param name="refresh"></param>
     /// <param name="jwtSettings"></param>
     public static void SetTokensCookie(
         this HttpResponse response, 
-        string accessToken, 
-        string refreshToken, 
-        DateTime expiresAt,
+        UpdateTokenEvent access, 
+        UpdateTokenEvent refresh, 
         JwtSettings jwtSettings
         )
     {
-        var cookieOptions = new CookieOptions
+        response.Cookies.Append(jwtSettings.AccessTokenCookieName, access.Token, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Path = CookiesPath,
-            Expires = expiresAt
-        };
-        
-        response.Cookies.Append(jwtSettings.AccessTokenCookieName, accessToken, cookieOptions);
-        response.Cookies.Append(jwtSettings.RefreshTokenCookieName, refreshToken, cookieOptions);
+            Expires = refresh.ExpiresAt
+        });
+
+        response.Cookies.Append(jwtSettings.RefreshTokenCookieName, refresh.Token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = CookiesPath,
+            Expires = refresh.ExpiresAt
+        });
     }
 
     /// <summary>

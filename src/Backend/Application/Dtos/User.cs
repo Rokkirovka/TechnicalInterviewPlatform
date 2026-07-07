@@ -5,7 +5,7 @@ public class UserDto : BaseDto
     public string Login { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
-    public List<string> Roles { get; set; } = new();
+    public List<string> Roles { get; set; } = [];
 }
 
 public class CreateUserRequest

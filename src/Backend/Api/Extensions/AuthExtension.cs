@@ -3,6 +3,7 @@ using Api.Auth;
 using Api.Auth.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 namespace Api.Extensions;
 
@@ -42,16 +43,11 @@ public static class AuthExtension
                 {
                     OnMessageReceived = context =>
                     {
-                        var authHeader = context.Request.Headers.Authorization
-                            .FirstOrDefault()?.Split(' ')
-                            .LastOrDefault();
-                        if (!string.IsNullOrEmpty(authHeader))
+                        var c = context.Request.Cookies[jwtSettings.AccessTokenCookieName];
+                        if (c != null && context.Token == null)
                         {
-                            context.Token = authHeader;
-                            return Task.CompletedTask;
+                            context.Token = c;
                         }
-
-                        context.Token = context.Request.Cookies[jwtSettings.AccessTokenCookieName];
                         return Task.CompletedTask;
                     }
                 };
