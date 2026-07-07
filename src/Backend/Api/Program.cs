@@ -61,5 +61,6 @@ app.UseExceptionHandler();
 app.UseAuthPipeline();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
+app.MapCandidateEndpoints();
 
 app.Run();

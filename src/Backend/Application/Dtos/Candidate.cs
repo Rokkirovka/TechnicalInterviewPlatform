@@ -9,7 +9,8 @@ public class CandidateDto : BaseDto
     public string City { get; set; } = string.Empty;
     public string Education { get; set; } = string.Empty;
     public string PreviousJob { get; set; } = string.Empty;
-    public List<CandidateSkillDto> Skills { get; set; } = new();
+    public List<CandidateSkillDto> Skills { get; set; } = [];
+    public CandidateStatus Status { get; set; }
 }
 
 public class CandidateSkillDto

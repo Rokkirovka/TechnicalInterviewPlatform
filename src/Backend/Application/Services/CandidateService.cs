@@ -9,6 +9,7 @@ public class CandidateService(
     IRepository<Candidate> repository,
     IDeletionLogRepository<Candidate> deletionLogRepository,
     IRepository<Skill> skillRepository,
+    IRepository<Interview> interviewRepository,
     IMapper mapper)
     : BaseService<Candidate, CandidateDto, CreateCandidateRequest, UpdateCandidateRequest>(
         repository,
@@ -62,5 +63,17 @@ public class CandidateService(
 
         await Repository.UpdateAsync(candidate);
         return Mapper.Map<CandidateDto>(candidate);
+    }
+
+    public override async Task<CandidateDto?> GetByIdAsync(int id)
+    {
+        var candidate = await base.GetByIdAsync(id);
+        if (candidate == null)
+        {
+            return null;
+        }
+        candidate.Status = CandidateStatus.New;
+        // TODO правильно определять статус
+        return candidate;
     }
 }

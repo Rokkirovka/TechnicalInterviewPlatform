@@ -46,7 +46,7 @@ public static class UserEndpoints
                 : await userService.GetAllAliveAsync();
 
             return Results.Ok(list);
-        }).WithName("Search")
+        }).WithName("Search user")
         .WithSummary("Search user")
         .WithDescription("Find user with given name, may search among archived")
         .Produces(StatusCodes.Status200OK)
@@ -60,7 +60,7 @@ public static class UserEndpoints
             // TODO properly check for duplicate logins
             var result = await userService.CreateAsync(request);
             return Results.Ok(result);
-        }).WithName("Create")
+        }).WithName("Create user")
         .WithSummary("Create new user")
         .WithDescription("Create new user")
         .Produces(StatusCodes.Status201Created)
@@ -73,7 +73,7 @@ public static class UserEndpoints
         {
             var result = await userService.UpdateAsync(request);
             return Results.Ok(result);
-        }).WithName("Update")
+        }).WithName("Update user")
         .WithSummary("Update existing user")
         .WithDescription("Update existing user")
         .Produces(StatusCodes.Status200OK)
@@ -95,7 +95,7 @@ public static class UserEndpoints
             await userService.DeleteAsync(id, deletedByUserId: adminId, reason: reason);
             var newUser = await userService.GetByIdIncludingDeletedAsync(id);
             return Results.Ok(newUser);
-        }).WithName("Archive")
+        }).WithName("Archive user")
         .WithSummary("Archive user")
         .WithDescription("Archive user")
         .Produces(StatusCodes.Status200OK)
@@ -109,9 +109,9 @@ public static class UserEndpoints
         {
             await userService.RestoreAsync(id);
             return Results.Ok();
-        }).WithName("Restore")
-        .WithSummary("Restore")
-        .WithDescription("Restore")
+        }).WithName("Restore user")
+        .WithSummary("Restore user")
+        .WithDescription("Restore user")
         .Produces(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.Admin);
