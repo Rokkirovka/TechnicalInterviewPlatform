@@ -44,6 +44,20 @@ public static class SkillsEndpoints
         .Produces(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
+        
+        group.MapPut("/", async (
+            [FromServices] ISkillService skillService,
+            UpdateSkillRequest request) =>
+        {
+            var result = await skillService.UpdateAsync(request);
+            return Results.Ok(result);
+        }).WithName("Update skill")
+        .WithSummary("Update skill")
+        .WithDescription("Update skill")
+        .Produces(StatusCodes.Status201Created)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
+
         return endpoints;
     }
 }

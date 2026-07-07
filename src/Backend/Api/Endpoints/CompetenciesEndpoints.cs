@@ -44,6 +44,20 @@ public static class CompetenciesEndpoints
         .Produces(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
+        
+        group.MapPut("/", async (
+            [FromServices] ICompetencyService competencyService,
+            UpdateCompetencyRequest request) =>
+        {
+            var result = await competencyService.UpdateAsync(request);
+            return Results.Ok(result);
+        }).WithName("Update competency")
+        .WithSummary("Update competency")
+        .WithDescription("Update competency")
+        .Produces(StatusCodes.Status201Created)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
+
         return endpoints;
     }
 }
