@@ -1,33 +1,54 @@
 import { useState } from 'react';
+import Input from './ui/Input';
 import Select from './ui/Select';
 import Button from './ui/Button';
 import { SKILL_LEVELS } from '../utils/constants';
 import styles from './forms.module.css';
 
-// Редактор навыков кандидата.
-export default function SkillsEditor({ skills, skillOptions, onChange }) {
+export default function SkillsEditor({ skills, skillOptions, onChange, onCreateSkill }) {
   const [draftSkill, setDraftSkill] = useState('');
   const [draftLevel, setDraftLevel] = useState(SKILL_LEVELS[0]);
+  const [isSaving, setIsSaving] = useState(false);
 
-  function addSkill() {
-    if (!draftSkill) return;
-    onChange([
-      ...skills,
-      { id: `skill_${Date.now()}`, skillName: draftSkill, level: draftLevel },
-    ]);
-    setDraftSkill('');
-    setDraftLevel(SKILL_LEVELS[0]);
+  const trimmedDraft = draftSkill.trim();
+  const isNewSkill =
+    trimmedDraft.length > 0 &&
+    !skillOptions.some((s) => s.toLowerCase() === trimmedDraft.toLowerCase());
+
+  async function addSkill() {
+    if (!trimmedDraft) return;
+    setIsSaving(true);
+    try {
+      if (isNewSkill) {
+        await onCreateSkill(trimmedDraft);
+      }
+      onChange([
+        ...skills,
+        { id: `skill_${Date.now()}`, skillName: trimmedDraft, level: draftLevel },
+      ]);
+      setDraftSkill('');
+      setDraftLevel(SKILL_LEVELS[0]);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function removeSkill(id) {
     onChange(skills.filter((s) => s.id !== id));
   }
 
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addSkill();
+    }
+  }
+
   return (
     <div>
       <div className={styles.chipList}>
         {skills.length === 0 && (
-          <span style={{ color: 'var(--color-text-muted)', fontSize: 13.5 }}>
+          <span style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
             Навыки ещё не добавлены
           </span>
         )}
@@ -47,21 +68,28 @@ export default function SkillsEditor({ skills, skillOptions, onChange }) {
       </div>
 
       <div className={styles.addRow}>
-        <Select
+        <Input
           label="Навык"
-          placeholder="Выберите навык"
+          list="skills-directory"
           value={draftSkill}
           onChange={(e) => setDraftSkill(e.target.value)}
-          options={skillOptions.map((s) => ({ value: s, label: s }))}
+          onKeyDown={handleKeyDown}
+          placeholder="Выберите из списка или введите новый"
         />
+        <datalist id="skills-directory">
+          {skillOptions.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+
         <Select
           label="Уровень"
           value={draftLevel}
           onChange={(e) => setDraftLevel(e.target.value)}
           options={SKILL_LEVELS.map((l) => ({ value: l, label: l }))}
         />
-        <Button variant="secondary" onClick={addSkill} disabled={!draftSkill}>
-          Добавить
+        <Button variant="secondary" onClick={addSkill} disabled={!trimmedDraft || isSaving}>
+          {isSaving ? 'Добавляем…' : 'Добавить'}
         </Button>
       </div>
     </div>

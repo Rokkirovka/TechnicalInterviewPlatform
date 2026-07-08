@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { fetchCandidateById, updateCandidate, fetchInterviewsOfCandidate } from '../../api/candidatesApi';
-import { fetchSkills } from '../../api/dictionariesApi';
+import { fetchSkills, createSkill } from '../../api/dictionariesApi';
 import { printCandidateCard, printInvite, printReject } from '../../api/printApi';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -54,6 +54,11 @@ export default function CandidateCardPage() {
 
   function update(field, value) {
     setCandidate((prev) => ({ ...prev, [field]: value }));
+  }
+  
+  async function handleCreateSkill(name) {
+    await createSkill(name);
+    setSkillOptions((prev) => [...prev, name]);
   }
 
   async function handleSave(e) {
@@ -124,6 +129,7 @@ export default function CandidateCardPage() {
                   skills={candidate.skills}
                   skillOptions={skillOptions}
                   onChange={(skills) => update('skills', skills)}
+                  onCreateSkill={handleCreateSkill}
                 />
               ) : (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createCandidate } from '../../api/candidatesApi';
-import { fetchSkills } from '../../api/dictionariesApi';
+import { fetchSkills, createSkill } from '../../api/dictionariesApi';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -38,6 +38,11 @@ export default function CandidateFormPage() {
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+  
+  async function handleCreateSkill(name) {
+    await createSkill(name);
+    setSkillOptions((prev) => [...prev, name]);
   }
 
   async function handleSubmit(e) {
@@ -100,6 +105,7 @@ export default function CandidateFormPage() {
               skills={form.skills}
               skillOptions={skillOptions}
               onChange={(skills) => update('skills', skills)}
+              onCreateSkill={handleCreateSkill}
             />
           </div>
 
