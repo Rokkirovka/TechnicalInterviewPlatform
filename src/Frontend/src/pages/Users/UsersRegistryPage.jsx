@@ -25,9 +25,9 @@ export default function UsersRegistryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [archiveTarget, setArchiveTarget] = useState(null);
 
-  const load = useCallback(async (query, includeArchived) => {
+  const load = useCallback(async (query, showArchived) => {
     setIsLoading(true);
-    const data = await fetchUsers(query, includeArchived);
+    const data = await fetchUsers(query, showArchived);
     setUsers(data);
     setIsLoading(false);
   }, []);

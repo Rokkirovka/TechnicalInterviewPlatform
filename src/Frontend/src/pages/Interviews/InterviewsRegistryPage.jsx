@@ -25,9 +25,9 @@ export default function InterviewsRegistryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [archiveTarget, setArchiveTarget] = useState(null);
 
-  const load = useCallback(async (query, includeArchived) => {
+  const load = useCallback(async (query, showArchived) => {
     setIsLoading(true);
-    const data = await fetchInterviews(query, includeArchived);
+    const data = await fetchInterviews(query, showArchived);
     setInterviews(data);
     setIsLoading(false);
   }, []);

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Archive, RotateCcw } from 'lucide-react';
 import { fetchCandidates, archiveCandidate, restoreCandidate } from '../../api/candidatesApi';
 import { CANDIDATE_STATUS_LABELS, CANDIDATE_STATUS_TONE, ROLES } from '../../utils/constants';
-import { formatFullName } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
 import Table from '../../components/ui/Table';
 import SearchBar from '../../components/ui/SearchBar';
@@ -28,9 +27,9 @@ export default function CandidatesRegistryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [archiveTarget, setArchiveTarget] = useState(null);
 
-  const load = useCallback(async (query, includeArchived) => {
+  const load = useCallback(async (query, showArchived) => {
     setIsLoading(true);
-    const data = await fetchCandidates(query, includeArchived);
+    const data = await fetchCandidates(query, showArchived);
     setCandidates(data);
     setIsLoading(false);
   }, []);
@@ -62,7 +61,7 @@ export default function CandidatesRegistryPage() {
   }
 
   const columns = [
-    { key: 'name', title: 'ФИО', render: (c) => <span className={styles.nameCell}>{formatFullName(c)}</span> },
+    { key: 'name', title: 'ФИО', render: (c) => <span className={styles.nameCell}>{c.fullName}</span> },
     { key: 'phone', title: 'Телефон', render: (c) => <span className={styles.secondaryCell}>{c.phone}</span> },
     {
       key: 'status',
@@ -122,7 +121,7 @@ export default function CandidatesRegistryPage() {
 
       {archiveTarget && (
         <ArchiveDialog
-          entityLabel={`кандидата «${formatFullName(archiveTarget)}»`}
+          entityLabel={`кандидата «${archiveTarget.fullName}»`}
           onConfirm={handleConfirmArchive}
           onCancel={() => setArchiveTarget(null)}
         />

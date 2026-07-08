@@ -23,9 +23,9 @@ export default function VacanciesRegistryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [archiveTarget, setArchiveTarget] = useState(null);
 
-  const load = useCallback(async (query, includeArchived) => {
+  const load = useCallback(async (query, showArchived) => {
     setIsLoading(true);
-    const data = await fetchVacancies(query, includeArchived);
+    const data = await fetchVacancies(query, showArchived);
     setVacancies(data);
     setIsLoading(false);
   }, []);
@@ -64,10 +64,10 @@ export default function VacanciesRegistryPage() {
       title: 'Компетенции для матрицы',
       render: (v) => (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {v.competencyIds && v.competencyIds.length > 0 ? (
-            <Badge tone="info">{v.competencyIds.length} шт.</Badge>
+          {v.competencyCount > 0 ? (
+              <Badge tone="info">{v.competencyCount} шт.</Badge>
           ) : (
-            <Badge tone="neutral">не заданы — общий шаблон</Badge>
+              <Badge tone="neutral">не заданы — общий шаблон</Badge>
           )}
           {v.archived && <Badge tone="neutral">В архиве</Badge>}
         </div>
