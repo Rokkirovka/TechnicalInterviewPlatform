@@ -1,3 +1,4 @@
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,6 +44,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
         ArgumentException => StatusCodes.Status400BadRequest,
         UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
         InvalidOperationException => StatusCodes.Status400BadRequest,
+        BusinessRuleConflictException => StatusCodes.Status409Conflict,
         _ => StatusCodes.Status500InternalServerError
     };
 
@@ -52,6 +54,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
         ArgumentException => "Bad Request",
         UnauthorizedAccessException => "Unauthorized",
         InvalidOperationException => "Bad Request",
+        BusinessRuleConflictException => "Conflict", 
         _ => "Server Error"
     };
 }
