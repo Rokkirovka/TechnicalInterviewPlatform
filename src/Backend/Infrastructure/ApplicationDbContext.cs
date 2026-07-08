@@ -19,6 +19,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<VacancyCompetency> VacancyCompetencies { get; set; }
     public DbSet<CompetencyScore> CompetencyScores { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<PdfTemplate> PdfTemplates { get; set; }
+    public DbSet<PdfTemplateField> PdfTemplateFields { get; set; }
+    public DbSet<PdfTemplateFieldMapping> PdfTemplateFieldMappings { get; set; }
 
     public DbSet<DeletionLogBase<Candidate>> CandidateDeletionLogs { get; set; }
     public DbSet<DeletionLogBase<Vacancy>> VacancyDeletionLogs { get; set; }
@@ -151,6 +154,32 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         modelBuilder.Entity<RefreshToken>()
             .HasIndex(rt => rt.TokenHash)
+            .IsUnique();
+
+        modelBuilder.Entity<PdfTemplate>()
+            .HasOne(t => t.UploadedByUser)
+            .WithMany()
+            .HasForeignKey(t => t.UploadedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<PdfTemplateField>()
+            .HasOne(f => f.PdfTemplate)
+            .WithMany(t => t.Fields)
+            .HasForeignKey(f => f.PdfTemplateId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PdfTemplateField>()
+            .HasIndex(f => new { f.PdfTemplateId, f.Name })
+            .IsUnique();
+
+        modelBuilder.Entity<PdfTemplateFieldMapping>()
+            .HasOne(m => m.PdfTemplate)
+            .WithMany(t => t.FieldMappings)
+            .HasForeignKey(m => m.PdfTemplateId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PdfTemplateFieldMapping>()
+            .HasIndex(m => new { m.PdfTemplateId, m.PdfFieldName })
             .IsUnique();
 
         ConfigureDeletionLog<Candidate>(modelBuilder);

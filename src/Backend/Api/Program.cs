@@ -4,8 +4,11 @@ using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
 using Infrastructure;
+using Infrastructure.Pdf;
 using Infrastructure.Repositories;
+using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
+using Minio;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +25,16 @@ builder.AddAuth();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped(typeof(IDeletionLogRepository<>), typeof(DeletionLogRepository<>));
+builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection("Minio"));
+builder.Services.AddMinio(configureClient =>
+{
+    var options = builder.Configuration.GetSection("Minio").Get<MinioOptions>() ?? new MinioOptions();
+    configureClient
+        .WithEndpoint(options.Endpoint)
+        .WithCredentials(options.AccessKey, options.SecretKey)
+        .WithSSL(options.UseSsl)
+        .Build();
+});
 
 builder.Services.AddScoped<ICandidateService, CandidateService>();
 builder.Services.AddScoped<IVacancyService, VacancyService>();
@@ -32,6 +45,10 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IInterviewStageService, InterviewStageService>();
 builder.Services.AddScoped<ICompetencyScoreService, CompetencyScoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPdfTemplateRepository, PdfTemplateRepository>();
+builder.Services.AddScoped<IObjectStorageService, MinioObjectStorageService>();
+builder.Services.AddScoped<IPdfFormService, PdfSharpFormService>();
+builder.Services.AddScoped<IPdfTemplateService, PdfTemplateService>();
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile));
 
 var app = builder.Build();
@@ -60,5 +77,6 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler(); 
 app.UseAuthPipeline();
 app.MapAuthEndpoints();
+app.MapPdfTemplateEndpoints();
 
 app.Run();
