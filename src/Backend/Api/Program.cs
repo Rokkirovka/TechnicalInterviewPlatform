@@ -73,5 +73,6 @@ app.MapCandidateEndpoints();
 app.MapSkillsEndpoints();
 app.MapCompetenciesEndpoints();
 app.MapVacanciesEndpoints();
+app.MapInterviewEndpoints();
 
 app.Run();

@@ -62,7 +62,13 @@ public class MappingProfile : Profile
                 opt => opt.MapFrom(src => src.DecidedByUser != null ? src.DecidedByUser.FullName : string.Empty))
             .ForMember(dest => dest.Stages, opt => opt.MapFrom(src => src.InterviewStages))
             .ForMember(dest => dest.Matrix, opt => opt.MapFrom(src => src.CompetencyScores))
-            .ForMember(dest => dest.Comments, opt => opt.MapFrom(src => src.Comments));
+            .ForMember(dest => dest.Comments, opt => opt.MapFrom(src => src.Comments))
+            .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null))
+            .ForMember(dest => dest.Comment, opt => opt.MapFrom(src =>
+                src.Comments.Count != 0
+                    ? src.Comments.OrderByDescending(c => c.CreatedAt).Last().Content
+                    : string.Empty))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.StatusAsString));
 
         CreateMap<CreateInterviewRequest, Interview>()
             .ForMember(dest => dest.ScheduledAt, opt => opt.MapFrom(src => src.DateTime))

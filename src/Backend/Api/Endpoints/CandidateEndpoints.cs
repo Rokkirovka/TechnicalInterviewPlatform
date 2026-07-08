@@ -68,8 +68,8 @@ public static class CandidateEndpoints
 
         group.MapGet("/{id}/interviews", async (int id, IInterviewService interviewService) =>
         {
-            // TODO нужен метод GetAllForUser(id)
-            return Results.Ok(Array.Empty<InterviewDto>());
+            var list = await interviewService.GetByCandidateIdAsync(id);
+            return Results.Ok(list);
         }).WithName("Interviews for candidate")
         .WithSummary("Get interviews for candidate")
         .WithDescription("Get interviews for candidate")
@@ -107,7 +107,7 @@ public static class CandidateEndpoints
         group.MapPost("/{id}/archive", async (
             [FromServices] ICandidateService candidateService,
             ClaimsPrincipal userClaims,
-            int id, [FromBody] string reason) =>
+            int id, [FromBody] ArchiveRequest request) =>
         {
             var claimId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(claimId) || !int.TryParse(claimId, out var adminId))
@@ -116,7 +116,7 @@ public static class CandidateEndpoints
             }
             // TODO добавить проверку, вдруг пользователь уже заархивирован
 
-            await candidateService.ArchiveAsync(id, archivedByUserId: adminId, reason: reason);
+            await candidateService.ArchiveAsync(id, archivedByUserId: adminId, reason: request.Reason);
             var newUser = await candidateService.GetByIdAsync(id);
             return Results.Ok(newUser);
         }).WithName("Archive candidate")

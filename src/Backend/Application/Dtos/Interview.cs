@@ -9,7 +9,7 @@ public class InterviewDto : BaseDto
     public int VacancyId { get; set; }
     public string VacancyTitle { get; set; } = string.Empty;
     public DateTime ScheduledAt { get; set; }
-    public InterviewStatus Status { get; set; }
+    public string Status { get; set; } = "unknown";
     public int CreatedByUserId { get; set; }
     public string CreatedByUserName { get; set; } = string.Empty;
     public int? AssignedToUserId { get; set; }
@@ -17,9 +17,11 @@ public class InterviewDto : BaseDto
     public int? DecidedByUserId { get; set; }
     public string? DecidedByUserName { get; set; }
     
-    public List<InterviewStageDto> Stages { get; set; } = new();
-    public List<CompetencyScoreDto> Matrix { get; set; } = new();
-    public List<CommentDto> Comments { get; set; } = new();
+    public List<InterviewStageDto> Stages { get; set; } = [];
+    public List<CompetencyScoreDto> Matrix { get; set; } = [];
+    public List<CommentDto> Comments { get; set; } = [];
+    public bool Archived { get; set; }
+    public string Comment { get; set; } = string.Empty;
 }
 
 public class InterviewStageDto
@@ -66,4 +68,9 @@ public class UpdateCompetencyScoreRequest
 {
     public int Id { get; set; }
     public int Score { get; set; }
+}
+
+public class SetDecisionRequest
+{
+    public string Decision { get; set; } = string.Empty;
 }

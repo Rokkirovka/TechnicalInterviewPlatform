@@ -85,7 +85,7 @@ public static class VacanciesEndpoints
         group.MapPost("/{id}/archive", async (
             [FromServices] IVacancyService vacancyService,
             ClaimsPrincipal userClaims,
-            int id, [FromBody] string reason) =>
+            int id, [FromBody] ArchiveRequest request) =>
         {
             var claimId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(claimId) || !int.TryParse(claimId, out var adminId))
@@ -93,7 +93,7 @@ public static class VacanciesEndpoints
                 return Results.Unauthorized();
             }
 
-            await vacancyService.ArchiveAsync(id, archivedByUserId: adminId, reason: reason);
+            await vacancyService.ArchiveAsync(id, archivedByUserId: adminId, reason: request.Reason);
             var newUser = await vacancyService.GetByIdAsync(id);
             return Results.Ok(newUser);
         }).WithName("Archive vacancy")
