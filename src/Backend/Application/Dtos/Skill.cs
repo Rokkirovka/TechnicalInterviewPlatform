@@ -13,6 +13,5 @@ public class CreateSkillRequest
 
 public class UpdateSkillRequest
 {
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 }

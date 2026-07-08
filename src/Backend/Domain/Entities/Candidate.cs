@@ -10,7 +10,14 @@ public class Candidate : BaseEntity
     public string City { get; set; } = string.Empty;
     public string Education { get; set; } = string.Empty;
     public string PreviousJob { get; set; } = string.Empty;
-    
-    public virtual ICollection<CandidateSkill> CandidateSkills { get; set; } = new List<CandidateSkill>();
-    public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
+
+    public string Status => Interviews switch
+    {
+        { Count: 0 } => "new",
+        _ when Interviews.Any(i => i.Status == Enums.InterviewStatus.Approved) => "accepted",
+        _ => "in_progress"
+    };
+
+    public virtual ICollection<CandidateSkill> CandidateSkills { get; set; } = [];
+    public virtual ICollection<Interview> Interviews { get; set; } = [];
 }

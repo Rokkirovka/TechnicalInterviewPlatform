@@ -9,6 +9,7 @@ namespace Application.Services;
 
 public class UserService(
     IUserRepository userRepository,
+    IRoleRepository roleRepository,
     IDeletionLogRepository<User> deletionLogRepository,
     IPasswordHasher passwordHasher,
     IMapper mapper,
@@ -33,7 +34,12 @@ public class UserService(
         var user = mapper.Map<User>(request);
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
         user.IsActive = true;
-        user.Roles = request.Roles;
+        if (request.Roles.Any())
+        {
+            var allRoles = await roleRepository.GetAllAsync();
+            var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
+            user.Roles = existingRoles;
+        }
         await userRepository.AddAsync(user);
         var result = mapper.Map<UserDto>(user);
         
@@ -42,16 +48,21 @@ public class UserService(
         return result;
     }
 
-    public async Task<UserDto> UpdateAsync(UpdateUserRequest request)
+    public async Task<UserDto> UpdateAsync(int id, UpdateUserRequest request)
     {
-        var user = await userRepository.GetWithRolesAsync(request.Id);
-        if (user == null) throw new KeyNotFoundException($"Пользователь с id {request.Id} не найден");
+        var user = await userRepository.GetWithRolesAsync(id);
+        if (user == null) throw new KeyNotFoundException($"Пользователь с id {id} не найден");
 
         mapper.Map(request, user);
 
         if (!string.IsNullOrWhiteSpace(request.Password))
             user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
-        user.Roles = request.Roles;
+        if (request.Roles.Count != 0)
+        {
+            var allRoles = await roleRepository.GetAllAsync();
+            var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
+            user.Roles = existingRoles;
+        }
 
         await userRepository.UpdateAsync(user);
         var result = mapper.Map<UserDto>(user);

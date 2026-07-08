@@ -69,6 +69,11 @@ public static class AuthEndpoints
     {
         var result = await authService.LoginAsync(loginRequest.Login, loginRequest.Password, ct);
 
+        if (!result.User.Active)
+        {
+            return Results.Forbid();
+        }
+      
         context.Response.SetTokensCookie(result.NewAccessToken, result.NewRefreshToken, jwtSettings.Value);
         
         return Results.Ok(new

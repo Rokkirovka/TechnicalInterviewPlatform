@@ -45,11 +45,12 @@ public static class SkillsEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
         
-        group.MapPut("/", async (
+        group.MapPut("/{id}", async (
             [FromServices] ISkillService skillService,
+            int id,
             UpdateSkillRequest request) =>
         {
-            var result = await skillService.UpdateAsync(request);
+            var result = await skillService.UpdateAsync(id, request);
             return Results.Ok(result);
         }).WithName("Update skill")
         .WithSummary("Update skill")

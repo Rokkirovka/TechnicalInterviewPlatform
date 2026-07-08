@@ -64,11 +64,12 @@ public static class UserEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.Admin);
 
-        group.MapPut("/", async (
+        group.MapPut("/{id}", async (
             [FromServices] IUserService userService,
+            int id,
             UpdateUserRequest request) =>
         {
-            var result = await userService.UpdateAsync(request);
+            var result = await userService.UpdateAsync(id, request);
             return Results.Ok(result);
         }).WithName("Update user")
         .WithSummary("Update existing user")
@@ -80,7 +81,7 @@ public static class UserEndpoints
         group.MapPost("/{id}/archive", async (
             [FromServices] IUserService userService,
             ClaimsPrincipal userClaims,
-            int id, [FromBody] string reason) =>
+            int id, [FromBody] ArchiveRequest request) =>
         {
             var claimId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(claimId) || !int.TryParse(claimId, out var adminId))
@@ -89,7 +90,7 @@ public static class UserEndpoints
             }
             // TODO добавить проверку, вдруг пользователь уже заархивирован
 
-            await userService.ArchiveAsync(id, archivedByUserId: adminId, reason: reason);
+            await userService.ArchiveAsync(id, archivedByUserId: adminId, reason: request.Reason);
             var newUser = await userService.GetByIdAsync(id);
             return Results.Ok(newUser);
         }).WithName("Archive user")
@@ -105,7 +106,8 @@ public static class UserEndpoints
             int id) =>
         {
             await userService.RestoreAsync(id);
-            return Results.Ok();
+            var newUser = await userService.GetByIdAsync(id);
+            return Results.Ok(newUser);
         }).WithName("Restore user")
         .WithSummary("Restore user")
         .WithDescription("Restore user")

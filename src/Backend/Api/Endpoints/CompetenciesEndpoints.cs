@@ -45,11 +45,12 @@ public static class CompetenciesEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
         
-        group.MapPut("/", async (
+        group.MapPut("/{id}", async (
             [FromServices] ICompetencyService competencyService,
+            int id,
             UpdateCompetencyRequest request) =>
         {
-            var result = await competencyService.UpdateAsync(request);
+            var result = await competencyService.UpdateAsync(id, request);
             return Results.Ok(result);
         }).WithName("Update competency")
         .WithSummary("Update competency")

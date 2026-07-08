@@ -42,7 +42,7 @@ public static class VacanciesEndpoints
             string? search,
             bool? showArchived = false) =>
         {
-            if (showArchived is true && !user.IsInRole("Administrator") && !user.IsInRole("HumanResources"))
+            if (showArchived is true && !user.IsInRole("admin") && !user.IsInRole("hr"))
             {
                 return Results.Forbid();
             }
@@ -68,12 +68,12 @@ public static class VacanciesEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
 
-        group.MapPut("/", async (
+        group.MapPut("/{id}", async (
             [FromServices] IVacancyService vacancyService,
+            int id,
             UpdateVacancyRequest request) =>
         {
-            // TODO doesnt work properly, please check out
-            var result = await vacancyService.UpdateAsync(request);
+            var result = await vacancyService.UpdateAsync(id, request);
             return Results.Ok(result);
         }).WithName("Update vacancy")
         .WithSummary("Update existing vacancy")
@@ -85,7 +85,7 @@ public static class VacanciesEndpoints
         group.MapPost("/{id}/archive", async (
             [FromServices] IVacancyService vacancyService,
             ClaimsPrincipal userClaims,
-            int id, [FromBody] string reason) =>
+            int id, [FromBody] ArchiveRequest request) =>
         {
             var claimId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(claimId) || !int.TryParse(claimId, out var adminId))
@@ -93,7 +93,7 @@ public static class VacanciesEndpoints
                 return Results.Unauthorized();
             }
 
-            await vacancyService.ArchiveAsync(id, archivedByUserId: adminId, reason: reason);
+            await vacancyService.ArchiveAsync(id, archivedByUserId: adminId, reason: request.Reason);
             var newUser = await vacancyService.GetByIdAsync(id);
             return Results.Ok(newUser);
         }).WithName("Archive vacancy")

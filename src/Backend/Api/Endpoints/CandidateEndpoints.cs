@@ -42,7 +42,7 @@ public static class CandidateEndpoints
             string? search,
             bool? showArchived = false) =>
         {
-            if (showArchived is true && !user.IsInRole("Administrator") && !user.IsInRole("HumanResources"))
+            if (showArchived is true && !user.IsInRole("admin") && !user.IsInRole("hr"))
             {
                 return Results.Forbid();
             }
@@ -55,7 +55,7 @@ public static class CandidateEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.Authenticated);
 
-        group.MapGet("/names", async (int id, ICandidateService candidateService) =>
+        group.MapGet("/names", async (ICandidateService candidateService) =>
         {
             var users = await candidateService.GetNamesAsync();
             return Results.Ok(users.Select(u => new { id=u.Id, fullName=u.FullName }));
@@ -68,8 +68,8 @@ public static class CandidateEndpoints
 
         group.MapGet("/{id}/interviews", async (int id, IInterviewService interviewService) =>
         {
-            // TODO нужен метод GetAllForUser(id)
-            return Results.Ok(Array.Empty<InterviewDto>());
+            var list = await interviewService.GetByCandidateIdAsync(id);
+            return Results.Ok(list);
         }).WithName("Interviews for candidate")
         .WithSummary("Get interviews for candidate")
         .WithDescription("Get interviews for candidate")
@@ -90,11 +90,12 @@ public static class CandidateEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
 
-        group.MapPut("/", async (
+        group.MapPut("/{id}", async (
             [FromServices] ICandidateService candidateService,
+            int id,
             UpdateCandidateRequest request) =>
         {
-            var result = await candidateService.UpdateAsync(request);
+            var result = await candidateService.UpdateAsync(id, request);
             return Results.Ok(result);
         }).WithName("Update candidate")
         .WithSummary("Update existing candidate")
@@ -106,7 +107,7 @@ public static class CandidateEndpoints
         group.MapPost("/{id}/archive", async (
             [FromServices] ICandidateService candidateService,
             ClaimsPrincipal userClaims,
-            int id, [FromBody] string reason) =>
+            int id, [FromBody] ArchiveRequest request) =>
         {
             var claimId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(claimId) || !int.TryParse(claimId, out var adminId))
@@ -115,7 +116,7 @@ public static class CandidateEndpoints
             }
             // TODO добавить проверку, вдруг пользователь уже заархивирован
 
-            await candidateService.ArchiveAsync(id, archivedByUserId: adminId, reason: reason);
+            await candidateService.ArchiveAsync(id, archivedByUserId: adminId, reason: request.Reason);
             var newUser = await candidateService.GetByIdAsync(id);
             return Results.Ok(newUser);
         }).WithName("Archive candidate")
@@ -131,7 +132,8 @@ public static class CandidateEndpoints
             int id) =>
         {
             await candidateService.RestoreAsync(id);
-            return Results.Ok();
+            var newUser = await candidateService.GetByIdAsync(id);
+            return Results.Ok(newUser);
         }).WithName("Restore candidate")
         .WithSummary("Restore candidate")
         .WithDescription("Restore candidate")

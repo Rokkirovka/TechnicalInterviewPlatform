@@ -10,6 +10,8 @@ namespace Application.Services;
 public class InterviewService(
     IInterviewRepository interviewRepository,
     IVacancyRepository vacancyRepository,
+    ICandidateRepository candidateRepository,
+    IUserRepository userRepository,
     IDeletionLogRepository<Interview> deletionLogRepository,
     IMapper mapper,
     ILogger<InterviewService> logger) : IInterviewService
@@ -20,6 +22,12 @@ public class InterviewService(
         return mapper.Map<IReadOnlyList<InterviewDto>>(interviews);
     }
 
+    public async Task<IReadOnlyList<InterviewDto>> GetByCandidateIdAsync(int candidateId)
+    {
+        var interviews = await interviewRepository.GetByCandidateIdAsync(candidateId);
+        return mapper.Map<IReadOnlyList<InterviewDto>>(interviews);
+    }
+
     public async Task<InterviewDto> GetByIdAsync(int id)
     {
         var interview = await interviewRepository.GetWithDetailsAsync(id);
@@ -27,18 +35,26 @@ public class InterviewService(
         return mapper.Map<InterviewDto>(interview);
     }
 
-    public async Task<InterviewDto> CreateAsync(CreateInterviewRequest request)
+    public async Task<InterviewDto> CreateAsync(CreateInterviewRequest request, int createdByUserId)
     {
         var vacancy = await vacancyRepository.GetWithCompetenciesAsync(request.VacancyId);
         if (vacancy == null) throw new KeyNotFoundException($"Вакансия с id {request.VacancyId} не найдена");
+        
+        var candidate = await candidateRepository.GetByIdAsync(request.CandidateId);
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {request.VacancyId} не найден");
+        
+        var creator = await userRepository.GetByIdAsync(createdByUserId);
+        if (creator == null) throw new KeyNotFoundException($"Пользователь с id {request.VacancyId} не найден. Вы вообще кто?");
 
         var interview = new Interview
         {
             CandidateId = request.CandidateId,
+            Candidate = candidate,
             VacancyId = request.VacancyId,
             ScheduledAt = request.DateTime,
             Status = InterviewStatus.Scheduled,
-            CreatedByUserId = request.CreatedByUserId,
+            CreatedByUserId = createdByUserId,
+            CreatedByUser = creator,
             CreatedAt = DateTime.UtcNow,
             InterviewStages = request.Stages
                 .Select(s => new InterviewStage
@@ -67,10 +83,10 @@ public class InterviewService(
         return result;
     }
 
-    public async Task<InterviewDto> UpdateAsync(UpdateInterviewRequest request, int userId)
+    public async Task<InterviewDto> UpdateAsync(int id, UpdateInterviewRequest request, int userId)
     {
-        var interview = await interviewRepository.GetWithDetailsAsync(request.Id);
-        if (interview == null) throw new KeyNotFoundException($"Собеседование с id {request.Id} не найдено");
+        var interview = await interviewRepository.GetWithDetailsAsync(id);
+        if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
 
         interview.ScheduledAt = request.DateTime;
 

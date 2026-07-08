@@ -14,17 +14,19 @@ public class VacancyRepository(ApplicationDbContext context)
             .ThenInclude(vc => vc.Competency)
             .FirstOrDefaultAsync(v => v.Id == id);
     }
-    
+
     public async Task<IReadOnlyList<Vacancy>> SearchAsync(string? search, bool showArchived)
     {
-        var query = search is not null 
-            ? DbSet.Where(v => EF.Functions.ILike(v.Title, $"%{search}%")) 
+        var query = search is not null
+            ? DbSet.Where(v => EF.Functions.ILike(v.Title, $"%{search}%"))
             : DbSet;
 
         query = showArchived
             ? query.Where(v => v.DeletedAt != null)
             : query.Where(v => v.DeletedAt == null);
 
-        return await query.ToListAsync();
+        return await query
+            .Include(v => v.VacancyCompetencies)
+            .ThenInclude(vc => vc.Competency).ToListAsync();
     }
 }
