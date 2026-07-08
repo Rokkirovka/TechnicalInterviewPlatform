@@ -57,10 +57,10 @@ public class CandidateService(
         return mapper.Map<CandidateDto>(candidate);
     }
 
-    public async Task<CandidateDto> UpdateAsync(UpdateCandidateRequest request)
+    public async Task<CandidateDto> UpdateAsync(int id, UpdateCandidateRequest request)
     {
-        var candidate = await candidateRepository.GetByIdAsync(request.Id);
-        if (candidate == null) throw new Exception($"Кандидат с id {request.Id} не найден");
+        var candidate = await candidateRepository.GetByIdAsync(id);
+        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
 
         mapper.Map(request, candidate);
         candidate.CandidateSkills.Clear();

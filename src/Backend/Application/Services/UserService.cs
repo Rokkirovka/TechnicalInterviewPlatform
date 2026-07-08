@@ -41,10 +41,10 @@ public class UserService(
         return mapper.Map<UserDto>(user);
     }
 
-    public async Task<UserDto> UpdateAsync(UpdateUserRequest request)
+    public async Task<UserDto> UpdateAsync(int id, UpdateUserRequest request)
     {
-        var user = await userRepository.GetWithRolesAsync(request.Id);
-        if (user == null) throw new Exception($"Пользователь с id {request.Id} не найден");
+        var user = await userRepository.GetWithRolesAsync(id);
+        if (user == null) throw new Exception($"Пользователь с id {id} не найден");
 
         mapper.Map(request, user);
 

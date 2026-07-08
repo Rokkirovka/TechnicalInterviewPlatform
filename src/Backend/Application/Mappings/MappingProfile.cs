@@ -11,7 +11,8 @@ public class MappingProfile : Profile
         CreateMap<Candidate, CandidateDto>()
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
             .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.CandidateSkills))
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+            .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.PreviousJob));
 
         CreateMap<Candidate, CandidateNameDto>();
 

@@ -22,9 +22,11 @@ public class CompetencyService(
         return mapper.Map<CompetencyDto>(competency);
     }
 
-    public async Task<CompetencyDto> UpdateAsync(UpdateCompetencyRequest request)
+    public async Task<CompetencyDto> UpdateAsync(int id, UpdateCompetencyRequest request)
     {
-        var competency = mapper.Map<Competency>(request);
+        var competency = await competencyRepository.GetByIdAsync(id);
+        if (competency == null) throw new Exception($"Компетенция с id {id} не найдена");
+        mapper.Map(request, competency);
         await competencyRepository.UpdateAsync(competency);
         return mapper.Map<CompetencyDto>(competency);
     }

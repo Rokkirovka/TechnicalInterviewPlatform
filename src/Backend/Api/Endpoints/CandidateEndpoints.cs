@@ -90,11 +90,12 @@ public static class CandidateEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
 
-        group.MapPut("/", async (
+        group.MapPut("/{id}", async (
             [FromServices] ICandidateService candidateService,
+            int id,
             UpdateCandidateRequest request) =>
         {
-            var result = await candidateService.UpdateAsync(request);
+            var result = await candidateService.UpdateAsync(id, request);
             return Results.Ok(result);
         }).WithName("Update candidate")
         .WithSummary("Update existing candidate")

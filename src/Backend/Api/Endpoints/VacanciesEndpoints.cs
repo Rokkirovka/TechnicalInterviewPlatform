@@ -68,12 +68,12 @@ public static class VacanciesEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
 
-        group.MapPut("/", async (
+        group.MapPut("/{id}", async (
             [FromServices] IVacancyService vacancyService,
+            int id,
             UpdateVacancyRequest request) =>
         {
-            // TODO doesnt work properly, please check out
-            var result = await vacancyService.UpdateAsync(request);
+            var result = await vacancyService.UpdateAsync(id, request);
             return Results.Ok(result);
         }).WithName("Update vacancy")
         .WithSummary("Update existing vacancy")

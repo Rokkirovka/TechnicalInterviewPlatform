@@ -64,11 +64,12 @@ public static class UserEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.Admin);
 
-        group.MapPut("/", async (
+        group.MapPut("/{id}", async (
             [FromServices] IUserService userService,
+            int id,
             UpdateUserRequest request) =>
         {
-            var result = await userService.UpdateAsync(request);
+            var result = await userService.UpdateAsync(id, request);
             return Results.Ok(result);
         }).WithName("Update user")
         .WithSummary("Update existing user")

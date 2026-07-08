@@ -57,7 +57,6 @@ public class CreateInterviewStageRequest
 
 public class UpdateInterviewRequest
 {
-    public int Id { get; set; }
     public DateTime DateTime { get; set; }
     public List<UpdateCompetencyScoreRequest> Matrix { get; set; } = new();
     public string? Comment { get; set; }

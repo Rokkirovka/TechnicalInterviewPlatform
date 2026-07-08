@@ -44,11 +44,11 @@ public class VacancyService(
         return mapper.Map<VacancyDto>(vacancy);
     }
 
-    public async Task<VacancyDto> UpdateAsync(UpdateVacancyRequest request)
+    public async Task<VacancyDto> UpdateAsync(int id, UpdateVacancyRequest request)
     {
-        var vacancy = await vacancyRepository.GetWithCompetenciesAsync(request.Id);
+        var vacancy = await vacancyRepository.GetWithCompetenciesAsync(id);
         if (vacancy == null)
-            throw new Exception($"Вакансия с id {request.Id} не найдена");
+            throw new Exception($"Вакансия с id {id} не найдена");
 
         mapper.Map(request, vacancy);
 

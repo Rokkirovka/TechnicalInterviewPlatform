@@ -6,5 +6,5 @@ public interface ISkillService
 {
     Task<IReadOnlyList<SkillDto>> GetAllAsync();
     Task<SkillDto> CreateAsync(CreateSkillRequest request);
-    Task<SkillDto> UpdateAsync(UpdateSkillRequest request);
+    Task<SkillDto> UpdateAsync(int id, UpdateSkillRequest request);
 }

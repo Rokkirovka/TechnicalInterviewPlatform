@@ -61,10 +61,10 @@ public class InterviewService(
         return mapper.Map<InterviewDto>(interview);
     }
 
-    public async Task<InterviewDto> UpdateAsync(UpdateInterviewRequest request, int userId)
+    public async Task<InterviewDto> UpdateAsync(int id, UpdateInterviewRequest request, int userId)
     {
-        var interview = await interviewRepository.GetWithDetailsAsync(request.Id);
-        if (interview == null) throw new Exception($"Собеседование с id {request.Id} не найдено");
+        var interview = await interviewRepository.GetWithDetailsAsync(id);
+        if (interview == null) throw new Exception($"Собеседование с id {id} не найдено");
 
         interview.ScheduledAt = request.DateTime;
 

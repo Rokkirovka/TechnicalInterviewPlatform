@@ -22,9 +22,11 @@ public class SkillService(
         return mapper.Map<SkillDto>(skill);
     }
 
-    public async Task<SkillDto> UpdateAsync(UpdateSkillRequest request)
+    public async Task<SkillDto> UpdateAsync(int id, UpdateSkillRequest request)
     {
-        var skill = mapper.Map<Skill>(request);
+        var skill = await skillRepository.GetByIdAsync(id);
+        if (skill == null) throw new Exception($"Навык с id {id} не найден");
+        mapper.Map(request, skill);
         await skillRepository.UpdateAsync(skill);
         return mapper.Map<SkillDto>(skill);
     }
