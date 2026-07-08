@@ -35,10 +35,10 @@ public static class SkillsEndpoints
         group.MapPost("/", async (
             [FromServices] ISkillService skillService,
             CreateSkillRequest request) =>
-        {
-            var result = await skillService.CreateAsync(request);
-            return Results.Ok(result);
-        }).WithName("Create skill")
+            {
+                await skillService.CreateAsync(request);
+                return Results.Created();
+            }).WithName("Create skill")
         .WithSummary("Create new skill")
         .WithDescription("Create new skill")
         .Produces(StatusCodes.Status201Created)
