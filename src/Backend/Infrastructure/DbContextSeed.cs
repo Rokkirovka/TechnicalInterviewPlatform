@@ -20,27 +20,27 @@ public static class DbContextSeed
 
         var adminRole = new Role
         {
-            Name = "Administrator", 
+            Name = "admin", 
             Description = "Полный доступ к системе"
         };
         var hrRole = new Role
         {
-            Name = "HumanResources", 
+            Name = "hr", 
             Description = "Управление кандидатами и Проведение интервью"
         };
-        var solverRole = new Role
+        var approverRole = new Role
         {
-            Name = "DecisionMaker", 
+            Name = "approver", 
             Description = "Принятие итогово решения на основе матрицы компетенций и комментариев от HR"
         };
 
-        context.Roles.AddRange(adminRole, hrRole, solverRole);
+        context.Roles.AddRange(adminRole, hrRole, approverRole);
         await context.SaveChangesAsync();
 
         var adminUser = new User
         {
             Login = "admin",
-            FullName = "Администратор",
+            FirstName = "Администратор",
             IsActive = true
         };
         

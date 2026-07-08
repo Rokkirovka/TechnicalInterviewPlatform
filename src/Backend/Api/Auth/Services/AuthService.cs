@@ -1,6 +1,4 @@
-using Api.Auth.Helpers;
-using Application;
-using Application.Dtos;
+using Api.Auth.Dto;
 using Application.Interfaces;
 
 namespace Api.Auth.Services;
@@ -37,9 +35,7 @@ public class AuthService(
         {
             throw new UnauthorizedAccessException("Invalid login or password");
         }
-        
-        // ?: можно ввести у пользователя поле LastLogin и обновлять его тут
-        
+
         return await tokenService.GenerateTokensAsync(user, ct);
     }
 

@@ -1,7 +1,8 @@
-using Api.Auth;
+using System.Security.Claims;
 using Api.Auth.Options;
+using Api.Auth.Services;
 using Api.Helpers;
-using Application;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -37,22 +38,30 @@ public static class AuthEndpoints
             .Produces(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
-            .AllowAnonymous();
-        
+            .RequireAuthorization();
+
+        group.MapGet("/me", MeAsync)
+            .WithName("Me")
+            .WithSummary("Send user info")
+            .WithDescription("Send information about current user")
+            .Produces(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .RequireAuthorization();
+
         group.MapPost("/logout", LogoutAsync)
             .WithName("Logout")
-            .WithSummary("Logout into account")
-            .WithDescription("Logout into account via removing access and refresh tokens")
+            .WithSummary("Logout from account")
+            .WithDescription("Logout from account via removing access and refresh tokens")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .RequireAuthorization();
-        
+
         return endpoints;
     }
 
     private static async Task<IResult> LoginAsync(
-        [FromBody] LoginRequest loginRequest, 
-        IAuthService authService, 
+        [FromBody] LoginRequest loginRequest,
+        IAuthService authService,
         HttpContext context,
         IOptions<JwtSettings> jwtSettings,
         CancellationToken ct
@@ -60,13 +69,36 @@ public static class AuthEndpoints
     {
         var result = await authService.LoginAsync(loginRequest.Login, loginRequest.Password, ct);
 
-        context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt, jwtSettings.Value);
+        if (!result.User.Active)
+        {
+            return Results.Forbid();
+        }
 
-        return Results.Ok(new { message = "You successfully logged in." });
+        context.Response.SetTokensCookie(result.NewAccessToken, result.NewRefreshToken, jwtSettings.Value);
+
+        return Results.Ok(new
+        {
+            token = result.NewAccessToken.Token,
+            user = result.User
+        });
+    }
+
+    private static async Task<IResult> MeAsync(
+        ClaimsPrincipal userClaims,
+        IUserService userService
+    )
+    {
+        var claimId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(claimId) || !int.TryParse(claimId, out var id))
+        {
+            return Results.Unauthorized();
+        }
+        var user = await userService.GetByIdAsync(id);
+        return Results.Ok(user);
     }
 
     private static async Task<IResult> RefreshTokenAsync(
-        ITokenService tokenService, 
+        ITokenService tokenService,
         HttpContext context,
         IOptions<JwtSettings> jwtSettings,
         CancellationToken ct
@@ -78,12 +110,12 @@ public static class AuthEndpoints
             return Results.Unauthorized();
         }
         context.Response.ClearTokensCookie(jwtSettings.Value);
-        
+
         var result = await tokenService.UpdateTokenAsync(refreshToken, ct);
 
-        context.Response.SetTokensCookie(result.AccessToken, result.RefreshToken, result.ExpiresAt, jwtSettings.Value);
+        context.Response.SetTokensCookie(result.NewAccessToken, result.NewRefreshToken, jwtSettings.Value);
 
-        return Results.Ok(new { message = "You successfully refresh user's tokens" });
+        return Results.Ok(new { token = result.NewAccessToken.Token });
     }
 
     private static async Task<IResult> LogoutAsync(
@@ -98,7 +130,7 @@ public static class AuthEndpoints
         {
             await authService.LogoutAsync(refreshToken, ct);
         }
-        
+
         context.Response.ClearTokensCookie(jwtSettings.Value);
 
         return Results.NoContent();

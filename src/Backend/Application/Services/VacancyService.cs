@@ -6,61 +6,86 @@ using Domain.Entities;
 namespace Application.Services;
 
 public class VacancyService(
-    IRepository<Vacancy> repository,
+    IVacancyRepository vacancyRepository,
+    ICompetencyRepository competencyRepository,
     IDeletionLogRepository<Vacancy> deletionLogRepository,
-    IRepository<Competency> competencyRepository,
-    IMapper mapper)
-    : BaseService<Vacancy, VacancyDto, CreateVacancyRequest, UpdateVacancyRequest>(
-        repository,
-        deletionLogRepository,
-        mapper),
-      IVacancyService
+    IMapper mapper) : IVacancyService
 {
-    public override async Task<VacancyDto> CreateAsync(CreateVacancyRequest request)
+    public async Task<IReadOnlyList<VacancyDto>> SearchAsync(string? search, bool showArchived)
     {
-        var vacancy = Mapper.Map<Vacancy>(request);
-        
-        if (request.CompetencyIds.Any())
-        {
-            var competencies = await competencyRepository.AllAliveAsync();
-            var existingCompetencies = competencies
-                .Where(c => request.CompetencyIds.Contains(c.Id))
-                .ToList();
-            
-            vacancy.VacancyCompetencies = existingCompetencies.Select(c => new VacancyCompetency
-            {
-                CompetencyId = c.Id
-            }).ToList();
-        }
-
-        var result = await Repository.AddAsync(vacancy);
-        return Mapper.Map<VacancyDto>(result);
+        var vacancies = await vacancyRepository.SearchAsync(search, showArchived);
+        return mapper.Map<IReadOnlyList<VacancyDto>>(vacancies);
+    }
+    
+    public async Task<VacancyDto> GetByIdAsync(int id)
+    {
+        var vacancy = await vacancyRepository.GetWithCompetenciesAsync(id);
+        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+        return mapper.Map<VacancyDto>(vacancy);
     }
 
-    public override async Task<VacancyDto> UpdateAsync(UpdateVacancyRequest request)
+    public async Task<VacancyDto> CreateAsync(CreateVacancyRequest request)
     {
-        var vacancy = await Repository.GetByIdAsync(request.Id);
-        if (vacancy == null)
-            throw new Exception($"Вакансия с id {request.Id} не найдена");
+        var vacancy = mapper.Map<Vacancy>(request);
 
-        Mapper.Map(request, vacancy);
-        
-        vacancy.VacancyCompetencies.Clear();
-        
-        if (request.CompetencyIds.Any())
+        if (request.CompetencyIds.Count != 0)
         {
-            var competencies = await competencyRepository.AllAliveAsync();
-            var existingCompetencies = competencies
-                .Where(c => request.CompetencyIds.Contains(c.Id))
-                .ToList();
-            
-            vacancy.VacancyCompetencies = existingCompetencies.Select(c => new VacancyCompetency
-            {
-                CompetencyId = c.Id
-            }).ToList();
+            var competencies = await competencyRepository.GetByIdsAsync(request.CompetencyIds);
+
+            vacancy.VacancyCompetencies = competencies
+                .Select(c => new VacancyCompetency
+                {
+                    CompetencyId = c.Id,
+                    VacancyId = vacancy.Id
+                }).ToList();
         }
 
-        await Repository.UpdateAsync(vacancy);
-        return Mapper.Map<VacancyDto>(vacancy);
+        await vacancyRepository.AddAsync(vacancy);
+        return mapper.Map<VacancyDto>(vacancy);
+    }
+
+    public async Task<VacancyDto> UpdateAsync(int id, UpdateVacancyRequest request)
+    {
+        var vacancy = await vacancyRepository.GetWithCompetenciesAsync(id);
+        if (vacancy == null)
+            throw new Exception($"Вакансия с id {id} не найдена");
+
+        mapper.Map(request, vacancy);
+
+        vacancy.VacancyCompetencies.Clear();
+
+        if (request.CompetencyIds.Count != 0)
+        {
+            var competencies = await competencyRepository.GetByIdsAsync(request.CompetencyIds);
+
+            vacancy.VacancyCompetencies = competencies
+                .Select(c => new VacancyCompetency
+                {
+                    CompetencyId = c.Id,
+                    VacancyId = vacancy.Id
+                }).ToList();
+        }
+
+        await vacancyRepository.UpdateAsync(vacancy);
+        return mapper.Map<VacancyDto>(vacancy);
+    }
+
+    public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
+    {
+        var vacancy = await vacancyRepository.GetByIdAsync(id);
+        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+
+        vacancy.DeletedAt = DateTime.UtcNow;
+        await vacancyRepository.UpdateAsync(vacancy);
+
+        await deletionLogRepository.AddAsync(vacancy, archivedByUserId, reason);
+    }
+
+    public async Task RestoreAsync(int id)
+    {
+        var vacancy = await vacancyRepository.GetByIdAsync(id);
+        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+        vacancy.DeletedAt = null;
+        await vacancyRepository.UpdateAsync(vacancy);
     }
 }

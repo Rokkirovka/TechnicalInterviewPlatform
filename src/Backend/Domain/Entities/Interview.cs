@@ -17,8 +17,18 @@ public class Interview : BaseEntity
     public virtual User CreatedByUser { get; set; } = null!;
     public virtual User? AssignedToUser { get; set; }
     public virtual User? DecidedByUser { get; set; }
+
+    public string StatusAsString => Status switch
+    {
+        InterviewStatus.Scheduled => "scheduled",
+        InterviewStatus.Passed => "passed",
+        InterviewStatus.Approved => "approved",
+        InterviewStatus.Rejected => "rejected",
+        InterviewStatus.ToNextStage => "to_next_stage",
+        _ => "unknown"  
+    };
     
-    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
-    public virtual ICollection<InterviewStage> InterviewStages { get; set; } = new List<InterviewStage>();
-    public virtual ICollection<CompetencyScore> CompetencyScores { get; set; } = new List<CompetencyScore>();
+    public virtual ICollection<Comment> Comments { get; set; } = [];
+    public virtual ICollection<InterviewStage> InterviewStages { get; set; } = [];
+    public virtual ICollection<CompetencyScore> CompetencyScores { get; set; } = [];
 }

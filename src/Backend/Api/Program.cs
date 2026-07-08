@@ -23,15 +23,23 @@ builder.AddAuth();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped(typeof(IDeletionLogRepository<>), typeof(DeletionLogRepository<>));
 
+builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+builder.Services.AddScoped(typeof(IDeletionLogRepository<>), typeof(DeletionLogRepository<>));
+builder.Services.AddScoped<ICandidateRepository, CandidateRepository>();
+builder.Services.AddScoped<IVacancyRepository, VacancyRepository>();
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ICompetencyRepository, CompetencyRepository>();
+builder.Services.AddScoped<IInterviewRepository, InterviewRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
 builder.Services.AddScoped<ICandidateService, CandidateService>();
 builder.Services.AddScoped<IVacancyService, VacancyService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<ICompetencyService, CompetencyService>();
 builder.Services.AddScoped<IInterviewService, InterviewService>();
-builder.Services.AddScoped<ICommentService, CommentService>();
-builder.Services.AddScoped<IInterviewStageService, InterviewStageService>();
-builder.Services.AddScoped<ICompetencyScoreService, CompetencyScoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile));
 
 var app = builder.Build();
@@ -60,5 +68,11 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler(); 
 app.UseAuthPipeline();
 app.MapAuthEndpoints();
+app.MapUserEndpoints();
+app.MapCandidateEndpoints();
+app.MapSkillsEndpoints();
+app.MapCompetenciesEndpoints();
+app.MapVacanciesEndpoints();
+app.MapInterviewEndpoints();
 
 app.Run();
