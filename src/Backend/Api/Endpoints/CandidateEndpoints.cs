@@ -38,9 +38,14 @@ public static class CandidateEndpoints
 
         group.MapGet("/", async (
             [FromServices] ICandidateService candidateService,
+            ClaimsPrincipal user,
             string? search,
             bool? showArchived = false) =>
         {
+            if (showArchived is true && !user.IsInRole("Administrator") && !user.IsInRole("HumanResources"))
+            {
+                return Results.Forbid();
+            }
             var list = await candidateService.SearchAsync(search, showArchived ?? false);
             return Results.Ok(list);
         }).WithName("Search candidate")
