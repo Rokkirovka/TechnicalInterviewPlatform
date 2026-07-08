@@ -66,7 +66,7 @@ public class TokenService(
             throw new UnauthorizedAccessException("Invalid refresh token");
         }
 
-        var user = await userRepository.GetByIdAsync(storedRefreshToken.UserId);
+        var user = await userRepository.GetWithRolesAsync(storedRefreshToken.UserId);
         if (user is not { IsActive: true })
         {
             throw new UnauthorizedAccessException("User not found or inactive");
