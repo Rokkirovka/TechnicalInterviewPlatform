@@ -42,7 +42,7 @@ public static class CandidateEndpoints
             string? search,
             bool? showArchived = false) =>
         {
-            if (showArchived is true && !user.IsInRole("Administrator") && !user.IsInRole("HumanResources"))
+            if (showArchived is true && !user.IsInRole("admin") && !user.IsInRole("hr"))
             {
                 return Results.Forbid();
             }
@@ -55,7 +55,7 @@ public static class CandidateEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .RequireAuthorization(RoleBasedPolicies.Authenticated);
 
-        group.MapGet("/names", async (int id, ICandidateService candidateService) =>
+        group.MapGet("/names", async (ICandidateService candidateService) =>
         {
             var users = await candidateService.GetNamesAsync();
             return Results.Ok(users.Select(u => new { id=u.Id, fullName=u.FullName }));
@@ -131,7 +131,8 @@ public static class CandidateEndpoints
             int id) =>
         {
             await candidateService.RestoreAsync(id);
-            return Results.Ok();
+            var newUser = await candidateService.GetByIdAsync(id);
+            return Results.Ok(newUser);
         }).WithName("Restore candidate")
         .WithSummary("Restore candidate")
         .WithDescription("Restore candidate")

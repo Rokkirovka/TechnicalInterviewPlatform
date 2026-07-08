@@ -10,5 +10,5 @@ public class User : BaseEntity
     public string FullName => $"{FirstName} {LastName} {MiddleName}";
     public bool IsActive { get; set; } = true;
 
-    public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
+    public virtual ICollection<Role> Roles { get; set; } = [];
 }

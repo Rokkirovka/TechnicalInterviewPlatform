@@ -7,6 +7,6 @@ public class Vacancy : BaseEntity
     public string Department { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     
-    public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
-    public virtual ICollection<VacancyCompetency> VacancyCompetencies { get; set; } = new List<VacancyCompetency>();
+    public virtual ICollection<Interview> Interviews { get; set; } = [];
+    public virtual ICollection<VacancyCompetency> VacancyCompetencies { get; set; } = [];
 }

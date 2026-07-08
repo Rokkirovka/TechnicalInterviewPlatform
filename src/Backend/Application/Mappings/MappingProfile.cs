@@ -10,7 +10,10 @@ public class MappingProfile : Profile
     {
         CreateMap<Candidate, CandidateDto>()
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
-            .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.CandidateSkills));
+            .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.CandidateSkills))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
+
+        CreateMap<Candidate, CandidateNameDto>();
 
         CreateMap<CandidateSkill, CandidateSkillDto>()
             .ForMember(dest => dest.SkillName, opt => opt.MapFrom(src => src.Skill.Name));
@@ -18,7 +21,7 @@ public class MappingProfile : Profile
         CreateMap<CreateCandidateRequest, Candidate>()
             .ForMember(dest => dest.FullName,
                 opt => opt.MapFrom(src =>
-                    $"{src.LastName} {src.FirstName} {src.MiddleName}".Trim()));
+                    $"{src.LastName} {src.FirstName} {src.MiddleName}".Trim()));  
 
         CreateMap<UpdateCandidateRequest, Candidate>()
             .ForMember(dest => dest.FullName,
@@ -85,18 +88,21 @@ public class MappingProfile : Profile
         CreateMap<User, UserDto>()
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
             .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles.Select(r => r.Name).ToList()))
-            .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null));
+            .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null))
+            .ForMember(dest => dest.Active, opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<CreateUserRequest, User>()
             .ForMember(dest => dest.FullName,
                 opt => opt.MapFrom(src =>
                     $"{src.LastName} {src.FirstName} {src.MiddleName}"))
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
+            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+            .ForMember(dest => dest.Roles, opt => opt.Ignore());
 
         CreateMap<UpdateUserRequest, User>()
             .ForMember(dest => dest.FullName,
                 opt => opt.MapFrom(src =>
                     $"{src.LastName} {src.FirstName} {src.MiddleName}"))
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
+            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+            .ForMember(dest => dest.Roles, opt => opt.Ignore());
     }
 }

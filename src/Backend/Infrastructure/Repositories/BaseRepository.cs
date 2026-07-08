@@ -19,8 +19,9 @@ public class BaseRepository<T>(ApplicationDbContext context) : IRepository<T> wh
         await context.SaveChangesAsync();
     }
     
-    public async Task UpdateAsync(T entity)
+    public virtual async Task UpdateAsync(T entity)
     {
+        entity.UpdatedAt = DateTime.UtcNow;
         DbSet.Update(entity);
         await context.SaveChangesAsync();
     }
@@ -30,4 +31,6 @@ public class BaseRepository<T>(ApplicationDbContext context) : IRepository<T> wh
         DbSet.Remove(entity);
         await context.SaveChangesAsync();
     }
+
+    protected Task SaveChangesAsync() => context.SaveChangesAsync();
 }

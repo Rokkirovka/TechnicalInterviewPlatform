@@ -105,7 +105,8 @@ public static class UserEndpoints
             int id) =>
         {
             await userService.RestoreAsync(id);
-            return Results.Ok();
+            var newUser = await userService.GetByIdAsync(id);
+            return Results.Ok(newUser);
         }).WithName("Restore user")
         .WithSummary("Restore user")
         .WithDescription("Restore user")

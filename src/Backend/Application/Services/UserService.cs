@@ -7,6 +7,7 @@ namespace Application.Services;
 
 public class UserService(
     IUserRepository userRepository,
+    IRoleRepository roleRepository,
     IDeletionLogRepository<User> deletionLogRepository,
     IPasswordHasher passwordHasher,
     IMapper mapper) : IUserService
@@ -30,7 +31,12 @@ public class UserService(
         var user = mapper.Map<User>(request);
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
         user.IsActive = true;
-        user.Roles = request.Roles;
+        if (request.Roles.Any())
+        {
+            var allRoles = await roleRepository.GetAllAsync();
+            var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
+            user.Roles = existingRoles;
+        }
         await userRepository.AddAsync(user);
         return mapper.Map<UserDto>(user);
     }
@@ -44,7 +50,12 @@ public class UserService(
 
         if (!string.IsNullOrWhiteSpace(request.Password))
             user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
-        user.Roles = request.Roles;
+        if (request.Roles.Count != 0)
+        {
+            var allRoles = await roleRepository.GetAllAsync();
+            var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
+            user.Roles = existingRoles;
+        }
 
         await userRepository.UpdateAsync(user);
         return mapper.Map<UserDto>(user);

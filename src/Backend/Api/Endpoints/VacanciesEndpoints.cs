@@ -42,7 +42,7 @@ public static class VacanciesEndpoints
             string? search,
             bool? showArchived = false) =>
         {
-            if (showArchived is true && !user.IsInRole("Administrator") && !user.IsInRole("HumanResources"))
+            if (showArchived is true && !user.IsInRole("admin") && !user.IsInRole("hr"))
             {
                 return Results.Forbid();
             }
