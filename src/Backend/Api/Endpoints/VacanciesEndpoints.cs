@@ -37,10 +37,15 @@ public static class VacanciesEndpoints
         .RequireAuthorization(RoleBasedPolicies.Authenticated);
 
         group.MapGet("/", async (
-            [FromServices] IVacancyService vacancyService,
+            [FromServices] IVacancyService vacancyService, 
+            ClaimsPrincipal user,
             string? search,
             bool? showArchived = false) =>
         {
+            if (showArchived is true && !user.IsInRole("Administrator") && !user.IsInRole("HumanResources"))
+            {
+                return Results.Forbid();
+            }
             var list = await vacancyService.SearchAsync(search, showArchived ?? false);
             return Results.Ok(list);
         }).WithName("Search vacancy")
