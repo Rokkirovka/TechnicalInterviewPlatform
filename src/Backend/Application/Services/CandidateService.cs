@@ -26,7 +26,7 @@ public class CandidateService(
     public async Task<CandidateDto> GetByIdAsync(int id)
     {
         var candidate = await candidateRepository.GetByIdAsync(id);
-        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {id} не найден");
         return mapper.Map<CandidateDto>(candidate);
     }
 
@@ -60,7 +60,7 @@ public class CandidateService(
     public async Task<CandidateDto> UpdateAsync(UpdateCandidateRequest request)
     {
         var candidate = await candidateRepository.GetByIdAsync(request.Id);
-        if (candidate == null) throw new Exception($"Кандидат с id {request.Id} не найден");
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {request.Id} не найден");
 
         mapper.Map(request, candidate);
         candidate.CandidateSkills.Clear();
@@ -91,7 +91,7 @@ public class CandidateService(
     public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
         var candidate = await candidateRepository.GetByIdAsync(id);
-        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {id} не найден");
 
         candidate.DeletedAt = DateTime.UtcNow;
         await candidateRepository.UpdateAsync(candidate);
@@ -102,7 +102,7 @@ public class CandidateService(
     public async Task RestoreAsync(int id)
     {
         var candidate = await candidateRepository.GetByIdAsync(id);
-        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {id} не найден");
 
         candidate.DeletedAt = null;
         await candidateRepository.UpdateAsync(candidate);

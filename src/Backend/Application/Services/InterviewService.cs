@@ -21,14 +21,14 @@ public class InterviewService(
     public async Task<InterviewDto> GetByIdAsync(int id)
     {
         var interview = await interviewRepository.GetWithDetailsAsync(id);
-        if (interview == null) throw new Exception($"Собеседование с id {id} не найдено");
+        if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
         return mapper.Map<InterviewDto>(interview);
     }
 
     public async Task<InterviewDto> CreateAsync(CreateInterviewRequest request)
     {
         var vacancy = await vacancyRepository.GetWithCompetenciesAsync(request.VacancyId);
-        if (vacancy == null) throw new Exception($"Вакансия с id {request.VacancyId} не найдена");
+        if (vacancy == null) throw new KeyNotFoundException($"Вакансия с id {request.VacancyId} не найдена");
 
         var interview = new Interview
         {
@@ -64,7 +64,7 @@ public class InterviewService(
     public async Task<InterviewDto> UpdateAsync(UpdateInterviewRequest request, int userId)
     {
         var interview = await interviewRepository.GetWithDetailsAsync(request.Id);
-        if (interview == null) throw new Exception($"Собеседование с id {request.Id} не найдено");
+        if (interview == null) throw new KeyNotFoundException($"Собеседование с id {request.Id} не найдено");
 
         interview.ScheduledAt = request.DateTime;
 
@@ -93,7 +93,7 @@ public class InterviewService(
     public async Task MarkPassedAsync(int id)
     {
         var interview = await interviewRepository.GetByIdAsync(id);
-        if (interview == null) throw new Exception($"Собеседование с id {id} не найдено");
+        if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
         interview.Status = InterviewStatus.Passed;
         await interviewRepository.UpdateAsync(interview);
     }
@@ -101,14 +101,14 @@ public class InterviewService(
     public async Task SetDecisionAsync(int id, string decision)
     {
         var interview = await interviewRepository.GetByIdAsync(id);
-        if (interview == null) throw new Exception($"Собеседование с id {id} не найдено");
+        if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
 
         interview.Status = decision.ToLower() switch
         {
             "approved" => InterviewStatus.Approved,
             "rejected" => InterviewStatus.Rejected,
             "to_next_stage" => InterviewStatus.ToNextStage,
-            _ => throw new Exception($"Некорректное решение: {decision}")
+            _ => throw new ArgumentException($"Некорректное решение: {decision}")
         };
 
         await interviewRepository.UpdateAsync(interview);
@@ -117,7 +117,7 @@ public class InterviewService(
     public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
         var interview = await interviewRepository.GetByIdAsync(id);
-        if (interview == null) throw new Exception($"Собеседование с id {id} не найдено");
+        if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
         interview.DeletedAt = DateTime.UtcNow;
         await interviewRepository.UpdateAsync(interview);
         await deletionLogRepository.AddAsync(interview, archivedByUserId, reason);
@@ -126,7 +126,7 @@ public class InterviewService(
     public async Task RestoreAsync(int id)
     {
         var interview = await interviewRepository.GetByIdAsync(id);
-        if (interview == null) throw new Exception($"Собеседование с id {id} не найдено");
+        if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
         interview.DeletedAt = null;
         await interviewRepository.UpdateAsync(interview);
     }

@@ -20,7 +20,7 @@ public class VacancyService(
     public async Task<VacancyDto> GetByIdAsync(int id)
     {
         var vacancy = await vacancyRepository.GetWithCompetenciesAsync(id);
-        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+        if (vacancy == null) throw new KeyNotFoundException($"Вакансия с id {id} не найдена");
         return mapper.Map<VacancyDto>(vacancy);
     }
 
@@ -48,7 +48,7 @@ public class VacancyService(
     {
         var vacancy = await vacancyRepository.GetWithCompetenciesAsync(request.Id);
         if (vacancy == null)
-            throw new Exception($"Вакансия с id {request.Id} не найдена");
+            throw new KeyNotFoundException($"Вакансия с id {request.Id} не найдена");
 
         mapper.Map(request, vacancy);
 
@@ -73,7 +73,7 @@ public class VacancyService(
     public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
         var vacancy = await vacancyRepository.GetByIdAsync(id);
-        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+        if (vacancy == null) throw new KeyNotFoundException($"Вакансия с id {id} не найдена");
 
         vacancy.DeletedAt = DateTime.UtcNow;
         await vacancyRepository.UpdateAsync(vacancy);
@@ -84,7 +84,7 @@ public class VacancyService(
     public async Task RestoreAsync(int id)
     {
         var vacancy = await vacancyRepository.GetByIdAsync(id);
-        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+        if (vacancy == null) throw new KeyNotFoundException($"Вакансия с id {id} не найдена");
         vacancy.DeletedAt = null;
         await vacancyRepository.UpdateAsync(vacancy);
     }

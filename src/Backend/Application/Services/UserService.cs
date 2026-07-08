@@ -2,6 +2,7 @@ using Application.Dtos;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services;
 
@@ -21,7 +22,7 @@ public class UserService(
     {
         var user = await userRepository.GetWithRolesAsync(id);
         if (user == null)
-            throw new Exception($"Пользователь с id {id} не найден");
+            throw new KeyNotFoundException($"Пользователь с id {id} не найден");
         return mapper.Map<UserDto>(user);
     }
 
@@ -38,7 +39,7 @@ public class UserService(
     public async Task<UserDto> UpdateAsync(UpdateUserRequest request)
     {
         var user = await userRepository.GetWithRolesAsync(request.Id);
-        if (user == null) throw new Exception($"Пользователь с id {request.Id} не найден");
+        if (user == null) throw new KeyNotFoundException($"Пользователь с id {request.Id} не найден");
 
         mapper.Map(request, user);
 
@@ -53,8 +54,8 @@ public class UserService(
     public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
         var user = await userRepository.GetByIdAsync(id);
-        if (user == null) throw new Exception($"Пользователь с id {id} не найден");
-        if (id == archivedByUserId) throw new Exception("Вы не можете архивировать самого себя");
+        if (user == null) throw new KeyNotFoundException($"Пользователь с id {id} не найден");
+        if (id == archivedByUserId) throw new BusinessRuleConflictException("Вы не можете архивировать самого себя");
         user.DeletedAt = DateTime.UtcNow;
         await userRepository.UpdateAsync(user);
         await deletionLogRepository.AddAsync(user, archivedByUserId, reason);
@@ -63,7 +64,7 @@ public class UserService(
     public async Task RestoreAsync(int id)
     {
         var user = await userRepository.GetByIdAsync(id);
-        if (user == null) throw new Exception($"Пользователь с id {id} не найден");
+        if (user == null) throw new KeyNotFoundException($"Пользователь с id {id} не найден");
         user.DeletedAt = null;
         await userRepository.UpdateAsync(user);
     }
