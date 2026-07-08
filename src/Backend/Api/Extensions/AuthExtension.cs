@@ -42,16 +42,11 @@ public static class AuthExtension
                 {
                     OnMessageReceived = context =>
                     {
-                        var authHeader = context.Request.Headers.Authorization
-                            .FirstOrDefault()?.Split(' ')
-                            .LastOrDefault();
-                        if (!string.IsNullOrEmpty(authHeader))
+                        var c = context.Request.Cookies[jwtSettings.AccessTokenCookieName];
+                        if (c != null && context.Token == null)
                         {
-                            context.Token = authHeader;
-                            return Task.CompletedTask;
+                            context.Token = c;
                         }
-
-                        context.Token = context.Request.Cookies[jwtSettings.AccessTokenCookieName];
                         return Task.CompletedTask;
                     }
                 };
@@ -59,15 +54,15 @@ public static class AuthExtension
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(RoleBasedPolicies.Admin, policy =>
-                policy.RequireRole("Administrator"))
+                policy.RequireRole("admin"))
             .AddPolicy(RoleBasedPolicies.Hr, policy =>
-                policy.RequireRole("HumanResources"))
-            .AddPolicy(RoleBasedPolicies.DecisionMaker, policy =>
-                policy.RequireRole("DecisionMaker"))
+                policy.RequireRole("hr"))
+            .AddPolicy(RoleBasedPolicies.Approver, policy =>
+                policy.RequireRole("approver"))
             .AddPolicy(RoleBasedPolicies.AdminAndHr, policy =>
-                policy.RequireRole("Administrator", "HumanResources"))
-            .AddPolicy(RoleBasedPolicies.AdminAndDecisionMaker, policy =>
-                policy.RequireRole("Administrator", "DecisionMaker"))
+                policy.RequireRole("admin", "hr"))
+            .AddPolicy(RoleBasedPolicies.AdminAndApprover, policy =>
+                policy.RequireRole("admin", "approver"))
             .AddPolicy(RoleBasedPolicies.Authenticated, policy =>
                 policy.RequireAuthenticatedUser());
 
