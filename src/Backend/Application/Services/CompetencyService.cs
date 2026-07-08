@@ -6,11 +6,19 @@ using Domain.Entities;
 namespace Application.Services;
 
 public class CompetencyService(
-    IRepository<Competency> repository,
-    IDeletionLogRepository<Competency> deletionLogRepository,
-    IMapper mapper)
-    : BaseService<Competency, CompetencyDto, CreateCompetencyRequest, UpdateCompetencyRequest>(
-            repository,
-            deletionLogRepository,
-            mapper),
-        ICompetencyService;
+    ICompetencyRepository competencyRepository,
+    IMapper mapper) : ICompetencyService
+{
+    public async Task<IReadOnlyList<CompetencyDto>> GetAllAsync()
+    {
+        var competencies = await competencyRepository.GetAllAsync();
+        return mapper.Map<IReadOnlyList<CompetencyDto>>(competencies);
+    }
+
+    public async Task<CompetencyDto> CreateAsync(CreateCompetencyRequest request)
+    {
+        var competency = mapper.Map<Competency>(request);
+        await competencyRepository.AddAsync(competency);
+        return mapper.Map<CompetencyDto>(competency);
+    }
+}

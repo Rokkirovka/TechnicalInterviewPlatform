@@ -3,7 +3,6 @@ using Api.Auth;
 using Api.Auth.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Serilog;
 
 namespace Api.Extensions;
 

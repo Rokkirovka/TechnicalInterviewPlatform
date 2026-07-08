@@ -6,74 +6,105 @@ using Domain.Entities;
 namespace Application.Services;
 
 public class CandidateService(
-    IRepository<Candidate> repository,
+    ICandidateRepository candidateRepository,
+    ISkillRepository skillRepository,
     IDeletionLogRepository<Candidate> deletionLogRepository,
-    IRepository<Skill> skillRepository,
-    IRepository<Interview> interviewRepository,
-    IMapper mapper)
-    : BaseService<Candidate, CandidateDto, CreateCandidateRequest, UpdateCandidateRequest>(
-        repository,
-        deletionLogRepository,
-        mapper),
-      ICandidateService
+    IMapper mapper) : ICandidateService
 {
-    public override async Task<CandidateDto> CreateAsync(CreateCandidateRequest request)
+    public async Task<IReadOnlyList<CandidateDto>> SearchAsync(string? search, bool showArchived)
     {
-        var candidate = Mapper.Map<Candidate>(request);
-        
-        if (request.Skills.Any())
-        {
-            var skillIds = request.Skills.Select(s => s.SkillId).ToList();
-            var allSkills = await skillRepository.AllAliveAsync();
-            var existingSkills = allSkills.Where(s => skillIds.Contains(s.Id)).ToList();
-            
-            candidate.CandidateSkills = existingSkills.Select(s => new CandidateSkill
-            {
-                SkillId = s.Id,
-                Level = request.Skills.First(x => x.SkillId == s.Id).Level
-            }).ToList();
-        }
-
-        var result = await Repository.AddAsync(candidate);
-        return Mapper.Map<CandidateDto>(result);
+        var candidates = await candidateRepository.SearchAsync(search, showArchived);
+        return mapper.Map<IReadOnlyList<CandidateDto>>(candidates);
     }
 
-    public override async Task<CandidateDto> UpdateAsync(UpdateCandidateRequest request)
+    public async Task<IReadOnlyList<CandidateNameDto>> GetNamesAsync()
     {
-        var candidate = await Repository.GetByIdAsync(request.Id);
-        if (candidate == null)
-            throw new Exception($"Кандидат с id {request.Id} не найден");
+        var candidates = await candidateRepository.SearchAsync(null, false);
+        return mapper.Map<IReadOnlyList<CandidateNameDto>>(candidates);
+    }
 
-        Mapper.Map(request, candidate);
-        
+    public async Task<CandidateDto> GetByIdAsync(int id)
+    {
+        var candidate = await candidateRepository.GetByIdAsync(id);
+        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+        return mapper.Map<CandidateDto>(candidate);
+    }
+
+    public async Task<CandidateDto> CreateAsync(CreateCandidateRequest request)
+    {
+        var candidate = mapper.Map<Candidate>(request);
+
+        if (request.Skills.Count != 0)
+        {
+            var skillNames = request.Skills.Select(s => s.SkillName).ToList();
+            var existingSkills = await skillRepository.GetByNamesAsync(skillNames);
+
+            foreach (var skillRequest in request.Skills)
+            {
+                var skill = existingSkills.FirstOrDefault(s => s.Name.ToLower() == skillRequest.SkillName.ToLower());
+                if (skill != null)
+                {
+                    candidate.CandidateSkills.Add(new CandidateSkill
+                    {
+                        SkillId = skill.Id,
+                        Level = skillRequest.Level
+                    });
+                }
+            }
+        }
+
+        await candidateRepository.AddAsync(candidate);
+        return mapper.Map<CandidateDto>(candidate);
+    }
+
+    public async Task<CandidateDto> UpdateAsync(UpdateCandidateRequest request)
+    {
+        var candidate = await candidateRepository.GetByIdAsync(request.Id);
+        if (candidate == null) throw new Exception($"Кандидат с id {request.Id} не найден");
+
+        mapper.Map(request, candidate);
         candidate.CandidateSkills.Clear();
-        
-        if (request.Skills.Any())
+
+        if (request.Skills.Count != 0)
         {
-            var skillIds = request.Skills.Select(s => s.SkillId).ToList();
-            var allSkills = await skillRepository.AllAliveAsync();
-            var existingSkills = allSkills.Where(s => skillIds.Contains(s.Id)).ToList();
-            
-            candidate.CandidateSkills = existingSkills.Select(s => new CandidateSkill
+            var skillNames = request.Skills.Select(s => s.SkillName).ToList();
+            var existingSkills = await skillRepository.GetByNamesAsync(skillNames);
+
+            foreach (var skillRequest in request.Skills)
             {
-                SkillId = s.Id,
-                Level = request.Skills.First(x => x.SkillId == s.Id).Level
-            }).ToList();
+                var skill = existingSkills.FirstOrDefault(s => s.Name.ToLower() == skillRequest.SkillName.ToLower());
+                if (skill != null)
+                {
+                    candidate.CandidateSkills.Add(new CandidateSkill
+                    {
+                        SkillId = skill.Id,
+                        Level = skillRequest.Level
+                    });
+                }
+            }
         }
 
-        await Repository.UpdateAsync(candidate);
-        return Mapper.Map<CandidateDto>(candidate);
+        await candidateRepository.UpdateAsync(candidate);
+        return mapper.Map<CandidateDto>(candidate);
     }
 
-    public override async Task<CandidateDto?> GetByIdAsync(int id)
+    public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
-        var candidate = await base.GetByIdAsync(id);
-        if (candidate == null)
-        {
-            return null;
-        }
-        candidate.Status = CandidateStatus.New;
-        // TODO правильно определять статус
-        return candidate;
+        var candidate = await candidateRepository.GetByIdAsync(id);
+        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+
+        candidate.DeletedAt = DateTime.UtcNow;
+        await candidateRepository.UpdateAsync(candidate);
+
+        await deletionLogRepository.AddAsync(candidate, archivedByUserId, reason);
+    }
+
+    public async Task RestoreAsync(int id)
+    {
+        var candidate = await candidateRepository.GetByIdAsync(id);
+        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+
+        candidate.DeletedAt = null;
+        await candidateRepository.UpdateAsync(candidate);
     }
 }

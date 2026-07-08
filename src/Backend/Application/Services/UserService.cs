@@ -6,64 +6,65 @@ using Domain.Entities;
 namespace Application.Services;
 
 public class UserService(
-    IRepository<User> repository,
+    IUserRepository userRepository,
     IDeletionLogRepository<User> deletionLogRepository,
-    IRepository<Role> roleRepository,
     IPasswordHasher passwordHasher,
-    IMapper mapper)
-    : BaseService<User, UserDto, CreateUserRequest, UpdateUserRequest>(
-        repository,
-        deletionLogRepository,
-        mapper),
-      IUserService
+    IMapper mapper) : IUserService
 {
-    public override async Task<UserDto> CreateAsync(CreateUserRequest request)
+    public async Task<IReadOnlyList<UserDto>> SearchAsync(string? search, bool showArchived)
     {
-        var existingUsers = await Repository.AllAliveAsync();
-        if (existingUsers.Any(u => u.Login == request.Login))
-            throw new Exception($"Пользователь с логином '{request.Login}' уже существует");
+        var users = await userRepository.SearchAsync(search, showArchived);
+        return mapper.Map<IReadOnlyList<UserDto>>(users);
+    }
 
-        var user = Mapper.Map<User>(request);
+    public async Task<UserDto> GetByIdAsync(int id)
+    {
+        var user = await userRepository.GetWithRolesAsync(id);
+        if (user == null)
+            throw new Exception($"Пользователь с id {id} не найден");
+        return mapper.Map<UserDto>(user);
+    }
+
+    public async Task<UserDto> CreateAsync(CreateUserRequest request)
+    {
+        var user = mapper.Map<User>(request);
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
-
-        if (request.Roles.Any())
-        {
-            var allRoles = await roleRepository.AllAliveAsync();
-            var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
-            user.Roles = existingRoles;
-        }
-
-        var result = await Repository.AddAsync(user);
-        return Mapper.Map<UserDto>(result);
+        user.IsActive = true;
+        user.Roles = request.Roles;
+        await userRepository.AddAsync(user);
+        return mapper.Map<UserDto>(user);
     }
 
-    public override async Task<UserDto> UpdateAsync(UpdateUserRequest request)
+    public async Task<UserDto> UpdateAsync(UpdateUserRequest request)
     {
-        var user = await Repository.GetByIdAsync(request.Id);
-        if (user == null)
-            throw new Exception($"Пользователь с id {request.Id} не найден");
+        var user = await userRepository.GetWithRolesAsync(request.Id);
+        if (user == null) throw new Exception($"Пользователь с id {request.Id} не найден");
 
-        Mapper.Map(request, user);
+        mapper.Map(request, user);
 
-        user.Roles.Clear();
-        if (request.Roles.Any())
-        {
-            var allRoles = await roleRepository.AllAliveAsync();
-            var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
-            user.Roles = existingRoles;
-        }
+        if (!string.IsNullOrWhiteSpace(request.Password))
+            user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
+        user.Roles = request.Roles;
 
-        await Repository.UpdateAsync(user);
-        return Mapper.Map<UserDto>(user);
+        await userRepository.UpdateAsync(user);
+        return mapper.Map<UserDto>(user);
     }
 
-    public async Task ChangePasswordAsync(ChangeUserPasswordRequest request)
+    public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
-        var user = await Repository.GetByIdAsync(request.Id);
-        if (user == null)
-            throw new Exception($"Пользователь с id {request.Id} не найден");
+        var user = await userRepository.GetByIdAsync(id);
+        if (user == null) throw new Exception($"Пользователь с id {id} не найден");
+        if (id == archivedByUserId) throw new Exception("Вы не можете архивировать самого себя");
+        user.DeletedAt = DateTime.UtcNow;
+        await userRepository.UpdateAsync(user);
+        await deletionLogRepository.AddAsync(user, archivedByUserId, reason);
+    }
 
-        user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
-        await Repository.UpdateAsync(user);
+    public async Task RestoreAsync(int id)
+    {
+        var user = await userRepository.GetByIdAsync(id);
+        if (user == null) throw new Exception($"Пользователь с id {id} не найден");
+        user.DeletedAt = null;
+        await userRepository.UpdateAsync(user);
     }
 }

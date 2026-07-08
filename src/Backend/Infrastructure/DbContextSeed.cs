@@ -40,7 +40,7 @@ public static class DbContextSeed
         var adminUser = new User
         {
             Login = "admin",
-            FullName = "Администратор",
+            FirstName = "Администратор",
             IsActive = true
         };
         
