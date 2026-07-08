@@ -21,4 +21,11 @@ public class SkillService(
         await skillRepository.AddAsync(skill);
         return mapper.Map<SkillDto>(skill);
     }
+
+    public async Task<SkillDto> UpdateAsync(UpdateSkillRequest request)
+    {
+        var skill = mapper.Map<Skill>(request);
+        await skillRepository.UpdateAsync(skill);
+        return mapper.Map<SkillDto>(skill);
+    }
 }

@@ -23,7 +23,7 @@ public static class CompetenciesEndpoints
         group.MapGet("/", async (
             [FromServices] ICompetencyService competencyService) =>
         {
-            var list = await competencyService.GetAllAliveAsync();
+            var list = await competencyService.GetAllAsync();
             return Results.Ok(list);
         }).WithName("Search competencies")
         .WithSummary("Search competencies")

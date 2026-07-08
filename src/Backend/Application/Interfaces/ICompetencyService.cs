@@ -6,4 +6,5 @@ public interface ICompetencyService
 {
     Task<IReadOnlyList<CompetencyDto>> GetAllAsync();
     Task<CompetencyDto> CreateAsync(CreateCompetencyRequest request);
+    Task<CompetencyDto> UpdateAsync(UpdateCompetencyRequest request);
 }

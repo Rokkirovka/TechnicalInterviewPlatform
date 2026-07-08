@@ -41,10 +41,7 @@ public static class CandidateEndpoints
             string? search,
             bool? showArchived = false) =>
         {
-            var list = (showArchived ?? false)
-                ? await candidateService.GetAllDeletedAsync()
-                : await candidateService.GetAllAliveAsync();
-
+            var list = await candidateService.SearchAsync(search, showArchived ?? false);
             return Results.Ok(list);
         }).WithName("Search candidate")
         .WithSummary("Search candidate")
@@ -55,7 +52,7 @@ public static class CandidateEndpoints
 
         group.MapGet("/names", async (int id, ICandidateService candidateService) =>
         {
-            var users = await candidateService.GetAllAliveAsync();
+            var users = await candidateService.GetNamesAsync();
             return Results.Ok(users.Select(u => new { id=u.Id, fullName=u.FullName }));
         }).WithName("CandidateNames")
         .WithSummary("Get some candidates names")
@@ -113,8 +110,8 @@ public static class CandidateEndpoints
             }
             // TODO добавить проверку, вдруг пользователь уже заархивирован
 
-            await candidateService.DeleteAsync(id, deletedByUserId: adminId, reason: reason);
-            var newUser = await candidateService.GetByIdIncludingDeletedAsync(id);
+            await candidateService.ArchiveAsync(id, archivedByUserId: adminId, reason: reason);
+            var newUser = await candidateService.GetByIdAsync(id);
             return Results.Ok(newUser);
         }).WithName("Archive candidate")
         .WithSummary("Archive candidate")

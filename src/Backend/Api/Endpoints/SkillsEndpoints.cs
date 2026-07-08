@@ -23,7 +23,7 @@ public static class SkillsEndpoints
         group.MapGet("/", async (
             [FromServices] ISkillService skillService) =>
         {
-            var list = await skillService.GetAllAliveAsync();
+            var list = await skillService.GetAllAsync();
             return Results.Ok(list);
         }).WithName("Search skills")
         .WithSummary("Search skills")

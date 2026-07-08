@@ -41,10 +41,7 @@ public static class UserEndpoints
             string? search,
             bool? showArchived = false) =>
         {
-            var list = (showArchived ?? false)
-                ? await userService.GetAllDeletedAsync()
-                : await userService.GetAllAliveAsync();
-
+            var list = await userService.SearchAsync(search, showArchived ?? false);
             return Results.Ok(list);
         }).WithName("Search user")
         .WithSummary("Search user")
@@ -92,8 +89,8 @@ public static class UserEndpoints
             }
             // TODO добавить проверку, вдруг пользователь уже заархивирован
 
-            await userService.DeleteAsync(id, deletedByUserId: adminId, reason: reason);
-            var newUser = await userService.GetByIdIncludingDeletedAsync(id);
+            await userService.ArchiveAsync(id, archivedByUserId: adminId, reason: reason);
+            var newUser = await userService.GetByIdAsync(id);
             return Results.Ok(newUser);
         }).WithName("Archive user")
         .WithSummary("Archive user")

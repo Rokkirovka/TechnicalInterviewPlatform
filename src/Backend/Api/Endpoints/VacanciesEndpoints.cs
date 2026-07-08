@@ -41,10 +41,7 @@ public static class VacanciesEndpoints
             string? search,
             bool? showArchived = false) =>
         {
-            var list = (showArchived ?? false)
-                ? await vacancyService.GetAllDeletedAsync()
-                : await vacancyService.GetAllAliveAsync();
-
+            var list = await vacancyService.SearchAsync(search, showArchived ?? false);
             return Results.Ok(list);
         }).WithName("Search vacancy")
         .WithSummary("Search vacancy")
@@ -91,8 +88,8 @@ public static class VacanciesEndpoints
                 return Results.Unauthorized();
             }
 
-            await vacancyService.DeleteAsync(id, deletedByUserId: adminId, reason: reason);
-            var newUser = await vacancyService.GetByIdIncludingDeletedAsync(id);
+            await vacancyService.ArchiveAsync(id, archivedByUserId: adminId, reason: reason);
+            var newUser = await vacancyService.GetByIdAsync(id);
             return Results.Ok(newUser);
         }).WithName("Archive vacancy")
         .WithSummary("Archive vacancy")

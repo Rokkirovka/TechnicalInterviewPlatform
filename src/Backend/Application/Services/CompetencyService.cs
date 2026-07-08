@@ -21,4 +21,11 @@ public class CompetencyService(
         await competencyRepository.AddAsync(competency);
         return mapper.Map<CompetencyDto>(competency);
     }
+
+    public async Task<CompetencyDto> UpdateAsync(UpdateCompetencyRequest request)
+    {
+        var competency = mapper.Map<Competency>(request);
+        await competencyRepository.UpdateAsync(competency);
+        return mapper.Map<CompetencyDto>(competency);
+    }
 }
