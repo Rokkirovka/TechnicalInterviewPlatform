@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Infrastructure.Auth.Helpers;
 using Infrastructure.Auth.Options;
 using Infrastructure.Auth.Repositories;
+using Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RefreshTokenRepository = Infrastructure.Auth.Repositories.RefreshTokenRepository;

@@ -2,7 +2,10 @@ namespace Domain.Entities;
 
 public class Candidate : BaseEntity
 {
-    public string FullName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string MiddleName { get; set; } = string.Empty;
+    public string FullName => $"{FirstName} {LastName} {MiddleName}";
     public string Phone { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string Education { get; set; } = string.Empty;

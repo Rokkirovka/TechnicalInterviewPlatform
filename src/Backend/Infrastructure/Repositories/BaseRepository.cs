@@ -7,59 +7,28 @@ namespace Infrastructure.Repositories;
 
 public class BaseRepository<T>(ApplicationDbContext context) : IRepository<T> where T : BaseEntity
 {
-    private readonly DbSet<T> _dbSet = context.Set<T>();
+    protected readonly DbSet<T> DbSet = context.Set<T>();
 
     public async Task<T?> GetByIdAsync(int id)
     {
-        return await _dbSet.FirstOrDefaultAsync(e => e.Id == id && e.DeletedAt == null);
+        return await DbSet.FindAsync(id);
     }
 
-    public async Task<T?> GetByIdIncludingDeletedAsync(int id)
+    public async Task AddAsync(T entity)
     {
-        return await _dbSet.FirstOrDefaultAsync(e => e.Id == id);
-    }
-
-    public async Task<IReadOnlyList<T>> AllAsync()
-    {
-        return await _dbSet.ToListAsync();
-    }
-
-    public async Task<IReadOnlyList<T>> AllAliveAsync()
-    {
-        return await _dbSet.Where(e => e.DeletedAt == null).ToListAsync();
-    }
-
-    public async Task<IReadOnlyList<T>> AllDeletedAsync()
-    {
-        return await _dbSet.Where(e => e.DeletedAt != null).ToListAsync();
-    }
-
-    public async Task<T> AddAsync(T entity)
-    {
-        await _dbSet.AddAsync(entity);
+        await DbSet.AddAsync(entity);
         await context.SaveChangesAsync();
-        return entity;
     }
-
+    
     public async Task UpdateAsync(T entity)
     {
-        _dbSet.Update(entity);
+        DbSet.Update(entity);
         await context.SaveChangesAsync();
     }
-
+    
     public async Task DeleteAsync(T entity)
     {
-        _dbSet.Remove(entity);
+        DbSet.Remove(entity);
         await context.SaveChangesAsync();
-    }
-
-    public async Task<bool> ExistsAsync(int id)
-    {
-        return await _dbSet.AnyAsync(e => e.Id == id && e.DeletedAt == null);
-    }
-
-    public async Task<int> CountAsync()
-    {
-        return await _dbSet.CountAsync(e => e.DeletedAt == null);
     }
 }
