@@ -69,13 +69,8 @@ public static class AuthEndpoints
     {
         var result = await authService.LoginAsync(loginRequest.Login, loginRequest.Password, ct);
 
-        if (!result.User.IsActive)
-        {
-            return Results.Forbid();
-        }
-
         context.Response.SetTokensCookie(result.NewAccessToken, result.NewRefreshToken, jwtSettings.Value);
-
+        
         return Results.Ok(new
         {
             token = result.NewAccessToken.Token,
@@ -119,16 +114,23 @@ public static class AuthEndpoints
     }
 
     private static async Task<IResult> LogoutAsync(
+        ClaimsPrincipal userClaims,
         IAuthService authService,
         HttpContext context,
         IOptions<JwtSettings> jwtSettings,
         CancellationToken ct
         )
     {
+        var claimId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(claimId) || !int.TryParse(claimId, out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
         var refreshToken = context.Request.GetRefreshTokenCookie(jwtSettings.Value);
         if (!string.IsNullOrWhiteSpace(refreshToken))
         {
-            await authService.LogoutAsync(refreshToken, ct);
+            await authService.LogoutAsync(refreshToken, userId, ct);
         }
 
         context.Response.ClearTokensCookie(jwtSettings.Value);

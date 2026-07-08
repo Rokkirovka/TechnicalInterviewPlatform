@@ -3,6 +3,7 @@ using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
@@ -10,7 +11,8 @@ public class InterviewService(
     IInterviewRepository interviewRepository,
     IVacancyRepository vacancyRepository,
     IDeletionLogRepository<Interview> deletionLogRepository,
-    IMapper mapper) : IInterviewService
+    IMapper mapper,
+    ILogger<InterviewService> logger) : IInterviewService
 {
     public async Task<IReadOnlyList<InterviewDto>> SearchAsync(string? search, bool showArchived)
     {
@@ -58,7 +60,11 @@ public class InterviewService(
         };
 
         await interviewRepository.AddAsync(interview);
-        return mapper.Map<InterviewDto>(interview);
+        var result = mapper.Map<InterviewDto>(interview);
+        
+        logger.LogInformation("интервью {InterviewId} было создано", result.Id);
+        
+        return result;
     }
 
     public async Task<InterviewDto> UpdateAsync(UpdateInterviewRequest request, int userId)
@@ -87,7 +93,11 @@ public class InterviewService(
         }
 
         await interviewRepository.UpdateAsync(interview);
-        return mapper.Map<InterviewDto>(interview);
+        var result = mapper.Map<InterviewDto>(interview);
+        
+        logger.LogInformation("интервью {InterviewId} было обновлено", result.Id);
+        
+        return result;
     }
 
     public async Task MarkPassedAsync(int id)
@@ -96,6 +106,8 @@ public class InterviewService(
         if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
         interview.Status = InterviewStatus.Passed;
         await interviewRepository.UpdateAsync(interview);
+        
+        logger.LogInformation("интервью {InterviewId} было помечено законченным", interview.Id);
     }
 
     public async Task SetDecisionAsync(int id, string decision)
@@ -112,6 +124,11 @@ public class InterviewService(
         };
 
         await interviewRepository.UpdateAsync(interview);
+        
+        logger.LogInformation(
+            "интервью {InterviewId} получило решение: {Interview}", 
+            interview.Id, 
+            interview.Status.ToString());
     }
 
     public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
@@ -121,6 +138,8 @@ public class InterviewService(
         interview.DeletedAt = DateTime.UtcNow;
         await interviewRepository.UpdateAsync(interview);
         await deletionLogRepository.AddAsync(interview, archivedByUserId, reason);
+        
+        logger.LogInformation("интервью {InterviewId} было архивировано", interview.Id);
     }
 
     public async Task RestoreAsync(int id)
@@ -129,5 +148,7 @@ public class InterviewService(
         if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
         interview.DeletedAt = null;
         await interviewRepository.UpdateAsync(interview);
+        
+        logger.LogInformation("интервью {InterviewId} было восстановлено из архива", interview.Id);
     }
 }

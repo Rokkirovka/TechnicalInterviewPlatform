@@ -21,8 +21,8 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
     /// <returns></returns>
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Unhandled exception occurred");
-
+        LogException(exception);
+        
         var problemDetails = new ProblemDetails
         {
             Status = GetStatusCode(exception),
@@ -37,7 +37,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
 
         return true;
     }
-
+    
     private static int GetStatusCode(Exception exception) => exception switch
     {
         KeyNotFoundException => StatusCodes.Status404NotFound,
@@ -57,6 +57,25 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
         BusinessRuleConflictException => "Conflict", 
         _ => "Server Error"
     };
+
+    private void LogException(Exception exception)
+    {
+        if (exception is KeyNotFoundException or InvalidOperationException or ArgumentException)
+        {
+            _logger.LogInformation(
+                "Client error: {ExceptionType}: {Message}", 
+                exception.GetType().Name, 
+                exception.Message);
+            return;
+        }
+
+        if (exception is BusinessRuleConflictException or UnauthorizedAccessException)
+        {
+            return;
+        }
+
+        _logger.LogError(exception, "Unhandled exception occurred");
+    }
 }
 
 /// <summary>
