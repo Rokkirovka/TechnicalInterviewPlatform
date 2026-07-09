@@ -16,7 +16,7 @@ export default function CompetencyMatrix({ matrix, onChange, readOnly = false })
       <div className={styles.matrix}>
         {matrix.map((item) => (
           <div key={item.id} className={styles.matrixRow}>
-            <span className={styles.matrixLabel}>{item.name}</span>
+            <span className={styles.matrixLabel}>{item.competencyName}</span>
             <div className={styles.scaleGroup}>
               {SCALE.map((value) => (
                 <button
@@ -27,7 +27,7 @@ export default function CompetencyMatrix({ matrix, onChange, readOnly = false })
                   className={`${styles.scaleButton} ${
                     item.score === value ? styles.scaleButtonActive : ''
                   }`}
-                  aria-label={`${item.name}: оценка ${value}`}
+                  aria-label={`${item.competencyName}: оценка ${value}`}
                   aria-pressed={item.score === value}
                 >
                   {value}

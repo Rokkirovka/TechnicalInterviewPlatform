@@ -2,6 +2,23 @@ import { API_BASE_URL, ApiError, extractErrorMessage } from './client';
 
 const INTERVIEWS_BASE_URL = `${API_BASE_URL}/interviews`;
 
+function localDateTimeToUtcIso(localValue) {
+  if (!localValue) return null;
+  return new Date(localValue).toISOString();
+}
+
+function utcIsoToLocalDateTimeInput(utcIso) {
+  if (!utcIso) return '';
+  const date = new Date(utcIso);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function mapInterviewFromBackend(interview) {
+  if (!interview?.scheduledAt) return interview;
+  return { ...interview, scheduledAt: utcIsoToLocalDateTimeInput(interview.scheduledAt) };
+}
+
 export async function fetchInterviews(search = '', showArchived = false) {
   const params = new URLSearchParams();
   if (search) params.set('search', search);
@@ -14,7 +31,8 @@ export async function fetchInterviews(search = '', showArchived = false) {
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось загрузить собеседования'), response.status);
   }
-  return response.json();
+  const interviews = await response.json();
+  return interviews.map(mapInterviewFromBackend);
 }
 
 export async function fetchInterviewById(id) {
@@ -25,33 +43,40 @@ export async function fetchInterviewById(id) {
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось загрузить собеседование'), response.status);
   }
-  return response.json();
+  const interview = await response.json();
+  return mapInterviewFromBackend(interview);
 }
 
 export async function createInterview(payload) {
+  const body = { ...payload, scheduledAt: localDateTimeToUtcIso(payload.scheduledAt) };
+
   const response = await fetch(INTERVIEWS_BASE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось создать собеседование'), response.status);
   }
-  return response.json();
+  const interview = await response.json();
+  return mapInterviewFromBackend(interview);
 }
 
 export async function updateInterview(id, payload) {
+  const body = { ...payload, scheduledAt: localDateTimeToUtcIso(payload.scheduledAt) };
+
   const response = await fetch(`${INTERVIEWS_BASE_URL}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось сохранить изменения'), response.status);
   }
-  return response.json();
+  const interview = await response.json();
+  return mapInterviewFromBackend(interview);
 }
 
 export async function markInterviewPassed(id) {
@@ -62,7 +87,8 @@ export async function markInterviewPassed(id) {
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось отметить собеседование как проведённое'), response.status);
   }
-  return response.json();
+  const interview = await response.json();
+  return mapInterviewFromBackend(interview);
 }
 
 export async function submitDecision(interviewId, decision) {
@@ -75,7 +101,8 @@ export async function submitDecision(interviewId, decision) {
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось зафиксировать решение'), response.status);
   }
-  return response.json();
+  const interview = await response.json();
+  return mapInterviewFromBackend(interview);
 }
 
 export async function archiveInterview(id, reason) {
@@ -88,7 +115,8 @@ export async function archiveInterview(id, reason) {
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось архивировать собеседование'), response.status);
   }
-  return response.json();
+  const interview = await response.json();
+  return mapInterviewFromBackend(interview);
 }
 
 export async function restoreInterview(id) {
@@ -99,5 +127,6 @@ export async function restoreInterview(id) {
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось восстановить собеседование'), response.status);
   }
-  return response.json();
+  const interview = await response.json();
+  return mapInterviewFromBackend(interview);
 }

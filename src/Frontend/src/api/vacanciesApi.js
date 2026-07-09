@@ -25,7 +25,11 @@ export async function fetchVacancyById(id) {
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось загрузить вакансию'), response.status);
   }
-  return response.json();
+  const vacancy = await response.json();
+  return {
+    ...vacancy,
+    competencyIds: (vacancy.competencies || []).map((c) => c.competencyId),
+  };
 }
 
 export async function createVacancy(payload) {

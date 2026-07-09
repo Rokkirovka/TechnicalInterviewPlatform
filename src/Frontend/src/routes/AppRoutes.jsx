@@ -43,10 +43,13 @@ export default function AppRoutes() {
             <Route path="/users" element={<UsersRegistryPage />} />
             <Route path="/users/new" element={<UserFormPage />} />
             <Route path="/users/:id" element={<UserFormPage />} />
-            <Route path="/vacancies" element={<VacanciesRegistryPage />} />
-            <Route path="/vacancies/new" element={<VacancyFormPage />} />
-            <Route path="/vacancies/:id" element={<VacancyFormPage />} />
           </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.HR]} />}>
+                <Route path="/vacancies" element={<VacanciesRegistryPage />} />
+                <Route path="/vacancies/new" element={<VacancyFormPage />} />
+                <Route path="/vacancies/:id" element={<VacancyFormPage />} />
+            </Route>
             
           <Route path="/candidates" element={<CandidatesRegistryPage />} />
           <Route element={<ProtectedRoute allowedRoles={[ROLES.HR]} />}>

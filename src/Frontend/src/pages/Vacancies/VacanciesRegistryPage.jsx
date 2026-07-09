@@ -65,7 +65,7 @@ export default function VacanciesRegistryPage() {
       render: (v) => (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {v.competencies.length > 0 ? (
-              <Badge tone="info">{v.competencyCount} шт.</Badge>
+              <Badge tone="info">{v.competencies.length} шт.</Badge>
           ) : (
               <Badge tone="neutral">не заданы</Badge>
           )}

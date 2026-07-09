@@ -3,7 +3,7 @@ import Modal from './Modal';
 import Input from './ui/Input';
 import Button from './ui/Button';
 import { ARCHIVE_REASON_SUGGESTIONS } from '../utils/constants';
-import styles from './ui/modal.module.css';
+import styles from './modal.module.css';
 
 export default function ArchiveDialog({ entityLabel, onConfirm, onCancel }) {
   const [reason, setReason] = useState('');

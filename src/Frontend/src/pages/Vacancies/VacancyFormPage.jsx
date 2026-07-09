@@ -106,6 +106,7 @@ export default function VacancyFormPage() {
                 label="Описание вакансии"
                 multiline
                 value={form.description}
+                rows={15}
                 onChange={(e) => update('description', e.target.value)}
                 placeholder="Краткое описание обязанностей и требований"
               />
@@ -116,8 +117,7 @@ export default function VacancyFormPage() {
             <div className={styles.sectionTitle}>Компетенции для матрицы собеседования</div>
             <p style={{ fontSize: 13.5, color: 'var(--color-text-secondary)', marginBottom: 14 }}>
               Отметьте компетенции из общего справочника, которые войдут в матрицу оценки
-              при создании нового собеседования на эту вакансию. Если ни одна не выбрана —
-              будет использован общий шаблон.
+              при создании нового собеседования на эту вакансию.
             </p>
             <CompetenciesEditor
               competencyIds={form.competencyIds}
