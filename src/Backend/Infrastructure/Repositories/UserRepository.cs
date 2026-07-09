@@ -12,7 +12,10 @@ public class UserRepository(ApplicationDbContext context)
         var query = DbSet.Include(u => u.Roles).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(u => EF.Functions.ILike(u.FullName, $"%{search}%"));
+            query = query.Where(u =>
+                EF.Functions.ILike(u.FirstName, $"%{search}%") ||
+                EF.Functions.ILike(u.LastName, $"%{search}%") ||
+                EF.Functions.ILike(u.MiddleName, $"%{search}%"));
 
         query = showArchived
             ? query.Where(u => u.DeletedAt != null)

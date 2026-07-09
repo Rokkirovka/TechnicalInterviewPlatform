@@ -88,10 +88,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseSerilogRequestLogging();
 
 app.UseExceptionHandler(); 
 app.UseAuthPipeline();
+
 app.MapAuthEndpoints();
 app.MapPdfTemplateEndpoints();
 app.MapUserEndpoints();
@@ -100,5 +104,7 @@ app.MapSkillsEndpoints();
 app.MapCompetenciesEndpoints();
 app.MapVacanciesEndpoints();
 app.MapInterviewEndpoints();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
