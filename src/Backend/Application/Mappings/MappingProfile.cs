@@ -23,12 +23,14 @@ public class MappingProfile : Profile
         CreateMap<CreateCandidateRequest, Candidate>()
             .ForMember(dest => dest.FullName,
                 opt => opt.MapFrom(src =>
-                    $"{src.LastName} {src.FirstName} {src.MiddleName}".Trim()));  
+                    $"{src.LastName} {src.FirstName} {src.MiddleName}".Trim()))
+            .ForMember(dest => dest.PreviousJob, opt => opt.MapFrom(src => src.Experience));
 
         CreateMap<UpdateCandidateRequest, Candidate>()
             .ForMember(dest => dest.FullName,
                 opt => opt.MapFrom(src =>
-                    $"{src.LastName} {src.FirstName} {src.MiddleName}".Trim()));
+                    $"{src.LastName} {src.FirstName} {src.MiddleName}".Trim()))
+            .ForMember(dest => dest.PreviousJob, opt => opt.MapFrom(src => src.Experience));
 
         CreateMap<CreateCandidateSkillRequest, CandidateSkill>();
         CreateMap<UpdateCandidateSkillRequest, CandidateSkill>();
