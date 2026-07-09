@@ -2,6 +2,7 @@ using Application.Dtos;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
@@ -9,7 +10,8 @@ public class VacancyService(
     IVacancyRepository vacancyRepository,
     ICompetencyRepository competencyRepository,
     IDeletionLogRepository<Vacancy> deletionLogRepository,
-    IMapper mapper) : IVacancyService
+    IMapper mapper,
+    ILogger<VacancyService> logger) : IVacancyService
 {
     public async Task<IReadOnlyList<VacancyDto>> SearchAsync(string? search, bool showArchived)
     {
@@ -20,7 +22,7 @@ public class VacancyService(
     public async Task<VacancyDto> GetByIdAsync(int id)
     {
         var vacancy = await vacancyRepository.GetWithCompetenciesAsync(id);
-        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+        if (vacancy == null) throw new KeyNotFoundException($"Вакансия с id {id} не найдена");
         return mapper.Map<VacancyDto>(vacancy);
     }
 
@@ -41,14 +43,19 @@ public class VacancyService(
         }
 
         await vacancyRepository.AddAsync(vacancy);
-        return mapper.Map<VacancyDto>(vacancy);
+        var result = mapper.Map<VacancyDto>(vacancy);
+        
+        logger.LogInformation("вакансия {VacancyId} была создана", result.Id);
+        
+        return result;
     }
 
     public async Task<VacancyDto> UpdateAsync(int id, UpdateVacancyRequest request)
     {
         var vacancy = await vacancyRepository.GetWithCompetenciesAsync(id);
         if (vacancy == null)
-            throw new Exception($"Вакансия с id {id} не найдена");
+            throw new KeyNotFoundException($"Вакансия с id {id} не найдена");
+
 
         mapper.Map(request, vacancy);
 
@@ -67,25 +74,33 @@ public class VacancyService(
         }
 
         await vacancyRepository.UpdateAsync(vacancy);
-        return mapper.Map<VacancyDto>(vacancy);
+        var result = mapper.Map<VacancyDto>(vacancy);
+        
+        logger.LogInformation("вакансия {VacancyId} была обновлена", result.Id);
+        
+        return result;
     }
 
     public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
         var vacancy = await vacancyRepository.GetByIdAsync(id);
-        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+        if (vacancy == null) throw new KeyNotFoundException($"Вакансия с id {id} не найдена");
 
         vacancy.DeletedAt = DateTime.UtcNow;
         await vacancyRepository.UpdateAsync(vacancy);
 
         await deletionLogRepository.AddAsync(vacancy, archivedByUserId, reason);
+        
+        logger.LogInformation("вакансия {VacancyId} была архивирована", id);
     }
 
     public async Task RestoreAsync(int id)
     {
         var vacancy = await vacancyRepository.GetByIdAsync(id);
-        if (vacancy == null) throw new Exception($"Вакансия с id {id} не найдена");
+        if (vacancy == null) throw new KeyNotFoundException($"Вакансия с id {id} не найдена");
         vacancy.DeletedAt = null;
         await vacancyRepository.UpdateAsync(vacancy);
+        
+        logger.LogInformation("вакансия {VacancyId} была восстановлена из архива", id);
     }
 }

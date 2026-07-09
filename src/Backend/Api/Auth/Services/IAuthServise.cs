@@ -19,7 +19,8 @@ public interface IAuthService
     /// 
     /// </summary>
     /// <param name="refreshToken"></param>
+    /// <param name="userId"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task LogoutAsync(string refreshToken, CancellationToken ct = default);
+    Task LogoutAsync(string refreshToken, int userId, CancellationToken ct = default);
 }

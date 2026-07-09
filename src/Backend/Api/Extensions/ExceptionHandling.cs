@@ -1,3 +1,4 @@
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,8 +21,8 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
     /// <returns></returns>
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Unhandled exception occurred");
-
+        LogException(exception);
+        
         var problemDetails = new ProblemDetails
         {
             Status = GetStatusCode(exception),
@@ -36,13 +37,14 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
 
         return true;
     }
-
+    
     private static int GetStatusCode(Exception exception) => exception switch
     {
         KeyNotFoundException => StatusCodes.Status404NotFound,
         ArgumentException => StatusCodes.Status400BadRequest,
         UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
         InvalidOperationException => StatusCodes.Status400BadRequest,
+        BusinessRuleConflictException => StatusCodes.Status409Conflict,
         _ => StatusCodes.Status500InternalServerError
     };
 
@@ -52,8 +54,28 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
         ArgumentException => "Bad Request",
         UnauthorizedAccessException => "Unauthorized",
         InvalidOperationException => "Bad Request",
+        BusinessRuleConflictException => "Conflict", 
         _ => "Server Error"
     };
+
+    private void LogException(Exception exception)
+    {
+        if (exception is KeyNotFoundException or InvalidOperationException or ArgumentException)
+        {
+            _logger.LogInformation(
+                "Client error: {ExceptionType}: {Message}", 
+                exception.GetType().Name, 
+                exception.Message);
+            return;
+        }
+
+        if (exception is BusinessRuleConflictException or UnauthorizedAccessException)
+        {
+            return;
+        }
+
+        _logger.LogError(exception, "Unhandled exception occurred");
+    }
 }
 
 /// <summary>

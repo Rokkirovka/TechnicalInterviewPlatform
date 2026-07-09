@@ -2,6 +2,7 @@ using Application.Dtos;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
@@ -9,7 +10,8 @@ public class CandidateService(
     ICandidateRepository candidateRepository,
     ISkillRepository skillRepository,
     IDeletionLogRepository<Candidate> deletionLogRepository,
-    IMapper mapper) : ICandidateService
+    IMapper mapper,
+    ILogger<CandidateService> logger) : ICandidateService
 {
     public async Task<IReadOnlyList<CandidateDto>> SearchAsync(string? search, bool showArchived)
     {
@@ -26,7 +28,7 @@ public class CandidateService(
     public async Task<CandidateDto> GetByIdAsync(int id)
     {
         var candidate = await candidateRepository.GetByIdAsync(id);
-        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {id} не найден");
         return mapper.Map<CandidateDto>(candidate);
     }
 
@@ -54,13 +56,17 @@ public class CandidateService(
         }
 
         await candidateRepository.AddAsync(candidate);
-        return mapper.Map<CandidateDto>(candidate);
+        var result = mapper.Map<CandidateDto>(candidate);
+        
+        logger.LogInformation("кандидат {CandidateId} был создан", result.Id);
+
+        return result;
     }
 
     public async Task<CandidateDto> UpdateAsync(int id, UpdateCandidateRequest request)
     {
         var candidate = await candidateRepository.GetByIdAsync(id);
-        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {id} не найден");
 
         mapper.Map(request, candidate);
         candidate.CandidateSkills.Clear();
@@ -85,26 +91,34 @@ public class CandidateService(
         }
 
         await candidateRepository.UpdateAsync(candidate);
-        return mapper.Map<CandidateDto>(candidate);
+        var result = mapper.Map<CandidateDto>(candidate);
+        
+        logger.LogInformation("кандидат {CandidateId} был обновлён", result.Id);
+        
+        return result;
     }
 
     public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
         var candidate = await candidateRepository.GetByIdAsync(id);
-        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {id} не найден");
 
         candidate.DeletedAt = DateTime.UtcNow;
         await candidateRepository.UpdateAsync(candidate);
 
         await deletionLogRepository.AddAsync(candidate, archivedByUserId, reason);
+        
+        logger.LogInformation("кандидат {CandidateId} был архивирован", candidate.Id);
     }
 
     public async Task RestoreAsync(int id)
     {
         var candidate = await candidateRepository.GetByIdAsync(id);
-        if (candidate == null) throw new Exception($"Кандидат с id {id} не найден");
+        if (candidate == null) throw new KeyNotFoundException($"Кандидат с id {id} не найден");
 
         candidate.DeletedAt = null;
         await candidateRepository.UpdateAsync(candidate);
+        
+        logger.LogInformation("кандидат {CandidateId} был восстановлен", candidate.Id);
     }
 }
