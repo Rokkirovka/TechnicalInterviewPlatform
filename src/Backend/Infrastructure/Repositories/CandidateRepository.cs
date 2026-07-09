@@ -17,7 +17,10 @@ public class CandidateRepository(ApplicationDbContext context)
             ? query.Where(c => c.DeletedAt != null)
             : query.Where(c => c.DeletedAt == null);
         
-        return await query.Include(c => c.CandidateSkills).ThenInclude(cs => cs.Skill).ToListAsync();
+        return await query
+            .Include(c => c.CandidateSkills).ThenInclude(cs => cs.Skill)
+            .Include(c => c.Interviews)
+            .ToListAsync();
     }
 
     public override async Task UpdateAsync(Candidate entity)
@@ -55,8 +58,8 @@ public class CandidateRepository(ApplicationDbContext context)
     public override Task<Candidate?> GetByIdAsync(int id)
     {
         return DbSet
-            .Include(c => c.CandidateSkills)
-                .ThenInclude(cs => cs.Skill)
+            .Include(c => c.CandidateSkills).ThenInclude(cs => cs.Skill)
+            .Include(c => c.Interviews)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 }

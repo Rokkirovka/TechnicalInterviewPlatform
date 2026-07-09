@@ -13,7 +13,13 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.CandidateSkills))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.PreviousJob))
-            .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null));
+            .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
+                !src.Interviews.Any() 
+                    ? "new" 
+                    : src.Interviews.Any(i => i.Status == Domain.Enums.InterviewStatus.Approved) 
+                        ? "accepted" 
+                        : "in_progress"));
 
         CreateMap<Candidate, CandidateNameDto>();
 
@@ -67,9 +73,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Comments, opt => opt.MapFrom(src => src.Comments))
             .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null))
             .ForMember(dest => dest.Comment, opt => opt.MapFrom(src =>
-                src.Comments.Count != 0
-                    ? src.Comments.OrderByDescending(c => c.CreatedAt).Last().Content
-                    : string.Empty))
+                src.Comments.Any()
+                    ? src.Comments.OrderByDescending(c => c.CreatedAt).First().Content
+                    : null))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.StatusAsString));
 
         CreateMap<CreateInterviewRequest, Interview>()

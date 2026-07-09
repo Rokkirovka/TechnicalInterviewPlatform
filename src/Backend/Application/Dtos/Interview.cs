@@ -19,7 +19,7 @@ public class InterviewDto : BaseDto
     public List<CompetencyScoreDto> Matrix { get; set; } = [];
     public List<CommentDto> Comments { get; set; } = [];
     public bool Archived { get; set; }
-    public string Comment { get; set; } = string.Empty;
+    public string? Comment { get; set; } = null;
 }
 
 public class InterviewStageDto
