@@ -21,6 +21,7 @@ public class CandidateDto
     public List<CandidateSkillDto> Skills { get; set; } = [];
     public string Experience { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
+    public bool Archived { get; set; }
 }
 
 public class CandidateSkillDto

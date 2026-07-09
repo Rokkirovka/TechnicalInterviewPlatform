@@ -7,7 +7,7 @@ public class UserDto : BaseDto
     public string FirstName { get; set; } = string.Empty;
     public string MiddleName { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
-    public bool Active { get; set; }
+    public bool IsActive { get; set; }
     public List<string> Roles { get; set; } = [];
     public bool Archived { get; set; }
 }

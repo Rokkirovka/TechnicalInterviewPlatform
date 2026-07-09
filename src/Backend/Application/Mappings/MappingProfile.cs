@@ -12,7 +12,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
             .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.CandidateSkills))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-            .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.PreviousJob));
+            .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.PreviousJob))
+            .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null));
 
         CreateMap<Candidate, CandidateNameDto>();
 
@@ -33,7 +34,8 @@ public class MappingProfile : Profile
         CreateMap<UpdateCandidateSkillRequest, CandidateSkill>();
 
         CreateMap<Vacancy, VacancyDto>()
-            .ForMember(dest => dest.Competencies, opt => opt.MapFrom(src => src.VacancyCompetencies));
+            .ForMember(dest => dest.Competencies, opt => opt.MapFrom(src => src.VacancyCompetencies))
+            .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null));
 
         CreateMap<VacancyCompetency, VacancyCompetencyDto>()
             .ForMember(dest => dest.CompetencyName, opt => opt.MapFrom(src => src.Competency.Name));
@@ -71,11 +73,11 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.StatusAsString));
 
         CreateMap<CreateInterviewRequest, Interview>()
-            .ForMember(dest => dest.ScheduledAt, opt => opt.MapFrom(src => src.DateTime))
+            .ForMember(dest => dest.ScheduledAt, opt => opt.MapFrom(src => src.ScheduledAt))
             .ForMember(dest => dest.InterviewStages, opt => opt.MapFrom(src => src.Stages));
 
         CreateMap<UpdateInterviewRequest, Interview>()
-            .ForMember(dest => dest.ScheduledAt, opt => opt.MapFrom(src => src.DateTime));
+            .ForMember(dest => dest.ScheduledAt, opt => opt.MapFrom(src => src.ScheduledAt));
 
         CreateMap<InterviewStage, InterviewStageDto>();
         CreateMap<CreateInterviewStageRequest, InterviewStage>()
@@ -96,7 +98,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
             .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles.Select(r => r.Name).ToList()))
             .ForMember(dest => dest.Archived, opt => opt.MapFrom(src => src.DeletedAt != null))
-            .ForMember(dest => dest.Active, opt => opt.MapFrom(src => src.IsActive));
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<CreateUserRequest, User>()
             .ForMember(dest => dest.FullName,
