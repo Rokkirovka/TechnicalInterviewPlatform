@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Archive, RotateCcw } from 'lucide-react';
 import { fetchUsers, archiveUser, restoreUser } from '../../api/usersApi';
 import { ROLE_LABELS } from '../../utils/constants';
-import { formatFullName } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
 import Table from '../../components/ui/Table';
 import SearchBar from '../../components/ui/SearchBar';
@@ -59,7 +58,7 @@ export default function UsersRegistryPage() {
   }
 
   const columns = [
-    { key: 'name', title: 'ФИО', render: (u) => <span className={styles.nameCell}>{formatFullName(u)}</span> },
+    { key: 'name', title: 'ФИО', render: (u) => <span className={styles.nameCell}>{u.fullName}</span> },
     { key: 'login', title: 'Логин' },
     {
       key: 'roles',
@@ -127,7 +126,7 @@ export default function UsersRegistryPage() {
 
       {archiveTarget && (
         <ArchiveDialog
-          entityLabel={`пользователя «${formatFullName(archiveTarget)}»`}
+          entityLabel={`пользователя «${archiveTarget.fullName}»`}
           onConfirm={handleConfirmArchive}
           onCancel={() => setArchiveTarget(null)}
         />

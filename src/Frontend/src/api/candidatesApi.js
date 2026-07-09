@@ -33,9 +33,6 @@ export async function fetchCandidateById(id) {
     method: 'GET',
     credentials: 'include',
   });
-  if (response.status === 404) {
-    throw new ApiError('Кандидат не найден', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось загрузить кандидата'), response.status);
   }
@@ -62,9 +59,6 @@ export async function updateCandidate(id, payload) {
     credentials: 'include',
     body: JSON.stringify(payload),
   });
-  if (response.status === 404) {
-    throw new ApiError('Кандидат не найден', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось сохранить изменения'), response.status);
   }
@@ -89,9 +83,6 @@ export async function archiveCandidate(id, reason) {
     credentials: 'include',
     body: JSON.stringify({ reason }),
   });
-  if (response.status === 404) {
-    throw new ApiError('Кандидат не найден', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось архивировать кандидата'), response.status);
   }
@@ -103,9 +94,6 @@ export async function restoreCandidate(id) {
     method: 'POST',
     credentials: 'include',
   });
-  if (response.status === 404) {
-    throw new ApiError('Кандидат не найден', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось восстановить кандидата'), response.status);
   }

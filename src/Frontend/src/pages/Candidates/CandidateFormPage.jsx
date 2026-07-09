@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createCandidate } from '../../api/candidatesApi';
-import { fetchSkills, createSkill } from '../../api/dictionariesApi';
+import { fetchSkills, createSkill } from '../../api/skillsApi';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';

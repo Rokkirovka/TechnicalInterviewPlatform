@@ -21,6 +21,4 @@ export async function createSkill(name) {
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось добавить навык'), response.status);
   }
-  const created = await response.json();
-  return created.name;
 }

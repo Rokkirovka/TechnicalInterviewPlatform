@@ -41,6 +41,7 @@ export async function createUser(payload) {
     body: JSON.stringify(payload),
   });
 
+  /* TODO сделать на беке */
   if (response.status === 409) {
     throw new ApiError('Пользователь с таким логином уже существует', 409);
   }
@@ -51,16 +52,19 @@ export async function createUser(payload) {
 }
 
 export async function updateUser(id, payload) {
+  const { active, ...rest } = payload;
+  const body = {
+    ...rest,
+    isActive: active,
+    password: payload.password || null,
+  };
+
   const response = await fetch(`${USERS_BASE_URL}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ ...payload, password: payload.password || null }),
+    body: JSON.stringify(body),
   });
-
-  if (response.status === 404) {
-    throw new ApiError('Пользователь не найден', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось сохранить изменения'), response.status);
   }
@@ -74,10 +78,7 @@ export async function archiveUser(id, reason) {
     credentials: 'include',
     body: JSON.stringify({ reason }),
   });
-
-  if (response.status === 404) {
-    throw new ApiError('Пользователь не найден', 404);
-  }
+  
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось архивировать пользователя'), response.status);
   }
@@ -89,10 +90,7 @@ export async function restoreUser(id) {
     method: 'POST',
     credentials: 'include',
   });
-
-  if (response.status === 404) {
-    throw new ApiError('Пользователь не найден', 404);
-  }
+  
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось восстановить пользователя'), response.status);
   }

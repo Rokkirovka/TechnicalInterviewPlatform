@@ -2,14 +2,14 @@ import { API_BASE_URL, ApiError, extractErrorMessage } from './client';
 
 const AUTH_BASE_URL = `${API_BASE_URL}/auth`;
 
-export async function login(loginValue, password) {
+export async function login(login, password) {
   const response = await fetch(`${AUTH_BASE_URL}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ login: loginValue, password }),
+    body: JSON.stringify({ login, password }),
   });
-
+  
   if (response.status === 401) {
     throw new ApiError('Неверный логин или пароль', 401);
   }
@@ -30,7 +30,7 @@ export async function logout() {
     credentials: 'include',
   });
 
-  if (!response.ok && response.status !== 204) {
+  if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось выйти из системы'), response.status);
   }
   return true;
@@ -58,7 +58,7 @@ export async function refreshSession() {
   });
 
   if (!response.ok) {
-    throw new ApiError('Сессия истекла, нужно войти заново', response.status);
+    throw new ApiError('Необходимо войти заново', response.status);
   }
   return response.json();
 }

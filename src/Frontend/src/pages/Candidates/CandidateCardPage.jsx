@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { fetchCandidateById, updateCandidate, fetchInterviewsOfCandidate } from '../../api/candidatesApi';
-import { fetchSkills, createSkill } from '../../api/dictionariesApi';
+import { fetchSkills, createSkill } from '../../api/skillsApi.js';
 import { printCandidateCard, printInvite, printReject } from '../../api/printApi';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -165,9 +165,9 @@ export default function CandidateCardPage() {
                 onClick={() => navigate(`/interviews/${interview.id}`)}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{interview.vacancyName}</div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{interview.vacancyTitle}</div>
                   <div style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
-                    {formatDateTime(interview.dateTime)}
+                    {formatDateTime(interview.scheduledAt)}
                   </div>
                 </div>
                 <Badge tone={INTERVIEW_STATUS_TONE[interview.status]}>

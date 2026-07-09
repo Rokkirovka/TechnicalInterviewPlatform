@@ -22,9 +22,6 @@ export async function fetchVacancyById(id) {
     method: 'GET',
     credentials: 'include',
   });
-  if (response.status === 404) {
-    throw new ApiError('Вакансия не найдена', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось загрузить вакансию'), response.status);
   }
@@ -51,9 +48,6 @@ export async function updateVacancy(id, payload) {
     credentials: 'include',
     body: JSON.stringify(payload),
   });
-  if (response.status === 404) {
-    throw new ApiError('Вакансия не найдена', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось сохранить вакансию'), response.status);
   }
@@ -67,9 +61,6 @@ export async function archiveVacancy(id, reason) {
     credentials: 'include',
     body: JSON.stringify({ reason }),
   });
-  if (response.status === 404) {
-    throw new ApiError('Вакансия не найдена', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось архивировать вакансию'), response.status);
   }
@@ -81,11 +72,7 @@ export async function restoreVacancy(id) {
     method: 'POST',
     credentials: 'include',
   });
-  if (response.status === 404) {
-    throw new ApiError('Вакансия не найдена', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось восстановить вакансию'), response.status);
   }
-  return response.json();
 }

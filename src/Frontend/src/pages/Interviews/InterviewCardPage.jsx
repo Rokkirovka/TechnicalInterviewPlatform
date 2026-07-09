@@ -146,7 +146,7 @@ export default function InterviewCardPage() {
               </div>
               <div className={styles.field}>
                 <span className={styles.label}>Вакансия</span>
-                <div className={styles.readOnlyValue}>{interview.vacancyName}</div>
+                <div className={styles.readOnlyValue}>{interview.vacancyTitle}</div>
               </div>
               <Input
                 label="Дата и время"

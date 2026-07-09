@@ -29,7 +29,7 @@ export default function InterviewFormPage() {
   const [form, setForm] = useState({
     candidateId: preselectedCandidateId,
     vacancyId: '',
-    dateTime: '',
+    scheduledAt: '',
     stages: DEFAULT_STAGE,
   });
 
@@ -60,7 +60,7 @@ export default function InterviewFormPage() {
       const vacancy = vacancyOptions.find((v) => v.id === form.vacancyId);
       const interview = await createInterview({
         ...form,
-        vacancyName: vacancy?.name || '',
+        vacancyTitle: vacancy?.title || '',
         createdByUserId: user.id,
       });
       navigate(`/interviews/${interview.id}`);

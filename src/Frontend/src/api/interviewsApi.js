@@ -22,9 +22,6 @@ export async function fetchInterviewById(id) {
     method: 'GET',
     credentials: 'include',
   });
-  if (response.status === 404) {
-    throw new ApiError('Собеседование не найдено', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось загрузить собеседование'), response.status);
   }
@@ -51,9 +48,6 @@ export async function updateInterview(id, payload) {
     credentials: 'include',
     body: JSON.stringify(payload),
   });
-  if (response.status === 404) {
-    throw new ApiError('Собеседование не найдено', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось сохранить изменения'), response.status);
   }
@@ -65,9 +59,6 @@ export async function markInterviewPassed(id) {
     method: 'POST',
     credentials: 'include',
   });
-  if (response.status === 404) {
-    throw new ApiError('Собеседование не найдено', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось отметить собеседование как проведённое'), response.status);
   }
@@ -81,9 +72,6 @@ export async function submitDecision(interviewId, decision) {
     credentials: 'include',
     body: JSON.stringify({ decision }),
   });
-  if (response.status === 404) {
-    throw new ApiError('Собеседование не найдено', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось зафиксировать решение'), response.status);
   }
@@ -97,9 +85,6 @@ export async function archiveInterview(id, reason) {
     credentials: 'include',
     body: JSON.stringify({ reason }),
   });
-  if (response.status === 404) {
-    throw new ApiError('Собеседование не найдено', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось архивировать собеседование'), response.status);
   }
@@ -111,9 +96,6 @@ export async function restoreInterview(id) {
     method: 'POST',
     credentials: 'include',
   });
-  if (response.status === 404) {
-    throw new ApiError('Собеседование не найдено', 404);
-  }
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось восстановить собеседование'), response.status);
   }
