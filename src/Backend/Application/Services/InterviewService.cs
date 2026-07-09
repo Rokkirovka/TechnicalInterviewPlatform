@@ -51,7 +51,7 @@ public class InterviewService(
             CandidateId = request.CandidateId,
             Candidate = candidate,
             VacancyId = request.VacancyId,
-            ScheduledAt = request.DateTime,
+            ScheduledAt = request.ScheduledAt,
             Status = InterviewStatus.Scheduled,
             CreatedByUserId = createdByUserId,
             CreatedByUser = creator,
@@ -88,7 +88,7 @@ public class InterviewService(
         var interview = await interviewRepository.GetWithDetailsAsync(id);
         if (interview == null) throw new KeyNotFoundException($"Собеседование с id {id} не найдено");
 
-        interview.ScheduledAt = request.DateTime;
+        interview.ScheduledAt = request.ScheduledAt;
 
         if (request.Matrix.Count != 0)
         {

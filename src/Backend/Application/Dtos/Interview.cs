@@ -1,5 +1,3 @@
-using Domain.Enums;
-
 namespace Application.Dtos;
 
 public class InterviewDto : BaseDto
@@ -44,7 +42,7 @@ public class CreateInterviewRequest
 {
     public int CandidateId { get; set; }
     public int VacancyId { get; set; }
-    public DateTime DateTime { get; set; }
+    public DateTime ScheduledAt { get; set; }
     public int CreatedByUserId { get; set; }
     public List<CreateInterviewStageRequest> Stages { get; set; } = new();
 }
@@ -59,7 +57,7 @@ public class CreateInterviewStageRequest
 
 public class UpdateInterviewRequest
 {
-    public DateTime DateTime { get; set; }
+    public DateTime ScheduledAt { get; set; }
     public List<UpdateCompetencyScoreRequest> Matrix { get; set; } = new();
     public string? Comment { get; set; }
 }
