@@ -19,7 +19,7 @@ public static class InterviewEndpoints
     /// <returns></returns>
     public static IEndpointRouteBuilder MapInterviewEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/interviews")
+        var group = endpoints.MapGroup("/api/interviews")
             .WithTags("Interviews");
 
         group.MapGet("/", async (

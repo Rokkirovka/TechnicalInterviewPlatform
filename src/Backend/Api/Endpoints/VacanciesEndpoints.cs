@@ -18,7 +18,7 @@ public static class VacanciesEndpoints
     /// <returns></returns>
     public static IEndpointRouteBuilder MapVacanciesEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/vacancies")
+        var group = endpoints.MapGroup("/api/vacancies")
             .WithTags("Vacancies");
 
         group.MapGet("/{id}", async (int id, IVacancyService vacancyService) =>
