@@ -18,7 +18,7 @@ public static class CandidateEndpoints
     /// <returns></returns>
     public static IEndpointRouteBuilder MapCandidateEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/candidates")
+        var group = endpoints.MapGroup("/api/candidates")
             .WithTags("Candidates");
 
         group.MapGet("/{id}", async (int id, ICandidateService candidateService) =>
