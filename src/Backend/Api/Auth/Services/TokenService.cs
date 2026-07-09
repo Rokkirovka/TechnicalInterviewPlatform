@@ -19,6 +19,7 @@ namespace Api.Auth;
 /// <param name="userRepository"></param>
 /// <param name="jwtSettings"></param>
 /// <param name="mapper"></param>
+/// <param name="logger"></param>
 public class TokenService(
     IRefreshTokenRepository refreshTokenRepository,
     IUserRepository userRepository,
