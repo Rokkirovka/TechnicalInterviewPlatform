@@ -151,9 +151,9 @@ export default function InterviewCardPage() {
               <Input
                 label="Дата и время"
                 type="datetime-local"
-                value={interview.dateTime}
+                value={interview.scheduledAt}
                 disabled={!canEditFields}
-                onChange={(e) => update('dateTime', e.target.value)}
+                onChange={(e) => update('scheduledAt', e.target.value)}
               />
               {interview.createdByName && (
                 <div className={styles.field}>

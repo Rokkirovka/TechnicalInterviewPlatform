@@ -61,7 +61,7 @@ export default function InterviewsRegistryPage() {
   const columns = [
     { key: 'candidateName', title: 'Кандидат', render: (i) => <span className={styles.nameCell}>{i.candidateName}</span> },
     { key: 'vacancyTitle', title: 'Вакансия' },
-    { key: 'dateTime', title: 'Дата и время', render: (i) => <span className={styles.secondaryCell}>{formatDateTime(i.dateTime)}</span> },
+    { key: 'scheduledAt', title: 'Дата и время', render: (i) => <span className={styles.secondaryCell}>{formatDateTime(i.scheduledAt)}</span> },
     {
       key: 'status',
       title: 'Статус',

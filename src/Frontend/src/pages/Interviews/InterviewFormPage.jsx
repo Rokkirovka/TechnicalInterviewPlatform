@@ -50,7 +50,7 @@ export default function InterviewFormPage() {
     e.preventDefault();
     setError(null);
 
-    if (!form.candidateId || !form.vacancyId || !form.dateTime) {
+    if (!form.candidateId || !form.vacancyId || !form.scheduledAt) {
       setError('Заполните кандидата, вакансию и дату собеседования');
       return;
     }
@@ -99,14 +99,14 @@ export default function InterviewFormPage() {
               placeholder="Выберите вакансию"
               value={form.vacancyId}
               onChange={(e) => update('vacancyId', e.target.value)}
-              options={vacancyOptions.map((v) => ({ value: v.id, label: v.name }))}
+              options={vacancyOptions.map((v) => ({ value: v.id, label: v.title }))}
             />
             <Input
               label="Дата и время"
               type="datetime-local"
               required
-              value={form.dateTime}
-              onChange={(e) => update('dateTime', e.target.value)}
+              value={form.scheduledAt}
+              onChange={(e) => update('scheduledAt', e.target.value)}
             />
           </div>
 

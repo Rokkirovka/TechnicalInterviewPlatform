@@ -52,18 +52,11 @@ export async function createUser(payload) {
 }
 
 export async function updateUser(id, payload) {
-  const { active, ...rest } = payload;
-  const body = {
-    ...rest,
-    isActive: active,
-    password: payload.password || null,
-  };
-
   const response = await fetch(`${USERS_BASE_URL}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(body),
+    body: JSON.stringify({ ...payload, password: payload.password || null }),
   });
   if (!response.ok) {
     throw new ApiError(await extractErrorMessage(response, 'Не удалось сохранить изменения'), response.status);

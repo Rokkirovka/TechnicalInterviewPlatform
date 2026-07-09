@@ -72,11 +72,11 @@ export default function UsersRegistryPage() {
       ),
     },
     {
-      key: 'active',
+      key: 'isActive',
       title: 'Статус',
       render: (u) => (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {u.active ? <Badge tone="success">Активен</Badge> : <Badge tone="neutral">Отключён</Badge>}
+          {u.isActive ? <Badge tone="success">Активен</Badge> : <Badge tone="neutral">Отключён</Badge>}
           {u.archived && <Badge tone="neutral">В архиве</Badge>}
         </div>
       ),
