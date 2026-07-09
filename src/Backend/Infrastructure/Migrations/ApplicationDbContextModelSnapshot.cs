@@ -44,7 +44,15 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MiddleName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -439,13 +447,15 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("AssignedToUserId");
 
-                    b.HasIndex("CandidateId");
-
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("DecidedByUserId");
 
                     b.HasIndex("VacancyId");
+
+                    b.HasIndex("CandidateId", "VacancyId")
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL");
 
                     b.ToTable("Interviews");
                 });
@@ -694,14 +704,22 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Login")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MiddleName")
                         .IsRequired()
                         .HasColumnType("text");
 

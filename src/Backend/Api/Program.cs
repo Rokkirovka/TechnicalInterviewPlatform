@@ -9,6 +9,7 @@ using Infrastructure.Repositories;
 using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Minio;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,20 +37,28 @@ builder.Services.AddMinio(configureClient =>
         .Build();
 });
 
+builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+builder.Services.AddScoped(typeof(IDeletionLogRepository<>), typeof(DeletionLogRepository<>));
+builder.Services.AddScoped<ICandidateRepository, CandidateRepository>();
+builder.Services.AddScoped<IVacancyRepository, VacancyRepository>();
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ICompetencyRepository, CompetencyRepository>();
+builder.Services.AddScoped<IInterviewRepository, InterviewRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
 builder.Services.AddScoped<ICandidateService, CandidateService>();
 builder.Services.AddScoped<IVacancyService, VacancyService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<ICompetencyService, CompetencyService>();
 builder.Services.AddScoped<IInterviewService, InterviewService>();
-builder.Services.AddScoped<ICommentService, CommentService>();
-builder.Services.AddScoped<IInterviewStageService, InterviewStageService>();
-builder.Services.AddScoped<ICompetencyScoreService, CompetencyScoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPdfTemplateRepository, PdfTemplateRepository>();
 builder.Services.AddScoped<IPdfDocumentDataRepository, PdfDocumentDataRepository>();
 builder.Services.AddScoped<IObjectStorageService, MinioObjectStorageService>();
 builder.Services.AddScoped<IPdfFormService, PdfSharpFormService>();
 builder.Services.AddScoped<IPdfTemplateService, PdfTemplateService>();
+
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile));
 
 var app = builder.Build();
@@ -79,9 +88,17 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseSerilogRequestLogging();
+
 app.UseExceptionHandler(); 
 app.UseAuthPipeline();
 app.MapAuthEndpoints();
 app.MapPdfTemplateEndpoints();
+app.MapUserEndpoints();
+app.MapCandidateEndpoints();
+app.MapSkillsEndpoints();
+app.MapCompetenciesEndpoints();
+app.MapVacanciesEndpoints();
+app.MapInterviewEndpoints();
 
 app.Run();

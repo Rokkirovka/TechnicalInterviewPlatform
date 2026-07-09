@@ -2,67 +2,102 @@ using Application.Dtos;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
 public class UserService(
-    IRepository<User> repository,
+    IUserRepository userRepository,
+    IRoleRepository roleRepository,
     IDeletionLogRepository<User> deletionLogRepository,
-    IRepository<Role> roleRepository,
-    IMapper mapper)
-    : BaseService<User, UserDto, CreateUserRequest, UpdateUserRequest>(
-        repository,
-        deletionLogRepository,
-        mapper),
-      IUserService
+    IPasswordHasher passwordHasher,
+    IMapper mapper,
+    ILogger<UserService> logger) : IUserService
 {
-    public override async Task<UserDto> CreateAsync(CreateUserRequest request)
+    public async Task<IReadOnlyList<UserDto>> SearchAsync(string? search, bool showArchived)
     {
-        var existingUsers = await Repository.AllAliveAsync();
-        if (existingUsers.Any(u => u.Login == request.Login))
-            throw new Exception($"Пользователь с логином '{request.Login}' уже существует");
+        var users = await userRepository.SearchAsync(search, showArchived);
+        return mapper.Map<IReadOnlyList<UserDto>>(users);
+    }
 
-        var user = Mapper.Map<User>(request);
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+    public async Task<UserDto> GetByIdAsync(int id)
+    {
+        var user = await userRepository.GetWithRolesAsync(id);
+        if (user == null)
+            throw new KeyNotFoundException($"Пользователь с id {id} не найден");
+        return mapper.Map<UserDto>(user);
+    }
 
+    public async Task<UserDto> CreateAsync(CreateUserRequest request)
+    {
+        var user = mapper.Map<User>(request);
+        user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
+        user.IsActive = true;
         if (request.Roles.Any())
         {
-            var allRoles = await roleRepository.AllAliveAsync();
+            var allRoles = await roleRepository.GetAllAsync();
+            var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
+            user.Roles = existingRoles;
+        }
+        await userRepository.AddAsync(user);
+        var result = mapper.Map<UserDto>(user);
+        
+        logger.LogInformation("пользователь {UserId} был создан", result.Id);
+        
+        return result;
+    }
+
+    public async Task<UserDto> UpdateAsync(int id, UpdateUserRequest request)
+    {
+        var user = await userRepository.GetWithRolesAsync(id);
+        if (user == null) throw new KeyNotFoundException($"Пользователь с id {id} не найден");
+
+        mapper.Map(request, user);
+
+        if (!string.IsNullOrWhiteSpace(request.Password))
+            user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
+        if (request.Roles.Count != 0)
+        {
+            var allRoles = await roleRepository.GetAllAsync();
             var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
             user.Roles = existingRoles;
         }
 
-        var result = await Repository.AddAsync(user);
-        return Mapper.Map<UserDto>(result);
+        await userRepository.UpdateAsync(user);
+        var result = mapper.Map<UserDto>(user);
+        
+        logger.LogInformation("данные пользователя {UserId} были обновлены", result.Id);
+        
+        return result;
     }
 
-    public override async Task<UserDto> UpdateAsync(UpdateUserRequest request)
+    public async Task ArchiveAsync(int id, string? reason, int archivedByUserId)
     {
-        var user = await Repository.GetByIdAsync(request.Id);
-        if (user == null)
-            throw new Exception($"Пользователь с id {request.Id} не найден");
-
-        Mapper.Map(request, user);
-
-        user.Roles.Clear();
-        if (request.Roles.Any())
+        var user = await userRepository.GetByIdAsync(id);
+        if (user == null) throw new KeyNotFoundException($"Пользователь с id {id} не найден");
+        if (id == archivedByUserId)
         {
-            var allRoles = await roleRepository.AllAliveAsync();
-            var existingRoles = allRoles.Where(r => request.Roles.Contains(r.Name)).ToList();
-            user.Roles = existingRoles;
+            logger.LogInformation(
+                "Пользователь {archivedByUserId} попытался архивировать самого себя - такое нельзя", 
+                archivedByUserId);
+            
+            throw new BusinessRuleConflictException("Вы не можете архивировать самого себя");
         }
-
-        await Repository.UpdateAsync(user);
-        return Mapper.Map<UserDto>(user);
+        user.DeletedAt = DateTime.UtcNow;
+        await userRepository.UpdateAsync(user);
+        await deletionLogRepository.AddAsync(user, archivedByUserId, reason);
+        
+        logger.LogInformation("пользователь {userId} был архивирован", id);
     }
 
-    public async Task ChangePasswordAsync(ChangeUserPasswordRequest request)
+    public async Task RestoreAsync(int id)
     {
-        var user = await Repository.GetByIdAsync(request.Id);
-        if (user == null)
-            throw new Exception($"Пользователь с id {request.Id} не найден");
-
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-        await Repository.UpdateAsync(user);
+        var user = await userRepository.GetByIdAsync(id);
+        if (user == null) throw new KeyNotFoundException($"Пользователь с id {id} не найден");
+        user.DeletedAt = null;
+        await userRepository.UpdateAsync(user);
+        
+        logger.LogInformation("пользователь {userId} был восстановлен из архива", id);
     }
 }

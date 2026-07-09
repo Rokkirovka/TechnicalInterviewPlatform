@@ -61,11 +61,21 @@ public static class DbContextSeed
 
         var role = new Role
         {
-            Name = name,
-            Description = description
+            Name = "admin", 
+            Description = "Полный доступ к системе"
+        };
+        var hrRole = new Role
+        {
+            Name = "hr", 
+            Description = "Управление кандидатами и Проведение интервью"
+        };
+        var approverRole = new Role
+        {
+            Name = "approver", 
+            Description = "Принятие итогово решения на основе матрицы компетенций и комментариев от HR"
         };
 
-        context.Roles.Add(role);
+        context.Roles.AddRange(adminRole, hrRole, approverRole);
         await context.SaveChangesAsync();
         return role;
     }
@@ -99,8 +109,8 @@ public static class DbContextSeed
 
         var user = new User
         {
-            Login = login,
-            FullName = fullName,
+            Login = "admin",
+            FirstName = "Администратор",
             IsActive = true
         };
 

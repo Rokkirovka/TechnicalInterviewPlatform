@@ -1,6 +1,4 @@
-using Api.Auth.Helpers;
-using Application;
-using Application.Dtos;
+using Api.Auth.Dto;
 using Application.Interfaces;
 
 namespace Api.Auth.Services;
@@ -14,8 +12,8 @@ namespace Api.Auth.Services;
 public class AuthService(
     ITokenService tokenService,
     IUserRepository userRepository, 
-    IPasswordHasher passwordHasher
-    ) : IAuthService
+    IPasswordHasher passwordHasher,
+    ILogger<AuthService> logger) : IAuthService
 {
     /// <summary>
     /// 
@@ -30,27 +28,43 @@ public class AuthService(
         var user = await userRepository.GetByLoginAsync(login);
         if (user == null)
         {
+            logger.LogWarning("Неудачная попытка входа. Пользователь не найден.");
+            
             throw new UnauthorizedAccessException("Invalid login or password");
         }
 
         if (!passwordHasher.IsPasswordVerified(user, password))
         {
+            logger.LogWarning("Неудачная попытка входа для пользователя {UserId}. Неверный пароль.", user.Id);
+            
             throw new UnauthorizedAccessException("Invalid login or password");
         }
+
+        if (!user.IsActive)
+        {
+            logger.LogInformation("Пользователь {UserId} неактивен", user.Id);
+            
+            throw new UnauthorizedAccessException("User not found or inactive");
+        }
         
-        // ?: можно ввести у пользователя поле LastLogin и обновлять его тут
+        var result = await tokenService.GenerateTokensAsync(user, ct);
         
-        return await tokenService.GenerateTokensAsync(user, ct);
+        logger.LogInformation("Пользователь {UserId} успешно аутентифицирован.", user.Id);
+        
+        return result;
     }
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="refreshToken"></param>
+    /// <param name="userId"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async Task LogoutAsync(string refreshToken, CancellationToken ct = default)
+    public async Task LogoutAsync(string refreshToken, int userId, CancellationToken ct = default)
     {
         await tokenService.RevokeRefreshTokenAsync(refreshToken, ct);
+        
+        logger.LogInformation("Пользователь {UserId} успешно вышел.", userId);
     }
 }

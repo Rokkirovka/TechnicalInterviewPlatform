@@ -70,91 +70,93 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(vc => vc.CompetencyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Interview>()
-            .HasOne(i => i.Candidate)
-            .WithMany(c => c.Interviews)
-            .HasForeignKey(i => i.CandidateId)
-            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Interview>(entity =>
+        {
+            entity.HasIndex(i => new { i.CandidateId, i.VacancyId })
+                .IsUnique()
+                .HasFilter("\"DeletedAt\" IS NULL");
 
-        modelBuilder.Entity<Interview>()
-            .HasOne(i => i.Vacancy)
-            .WithMany(v => v.Interviews)
-            .HasForeignKey(i => i.VacancyId)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(i => i.Candidate)
+                .WithMany(c => c.Interviews)
+                .HasForeignKey(i => i.CandidateId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Interview>()
-            .HasOne(i => i.CreatedByUser)
-            .WithMany()
-            .HasForeignKey(i => i.CreatedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(i => i.Vacancy)
+                .WithMany(v => v.Interviews)
+                .HasForeignKey(i => i.VacancyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Interview>()
-            .HasOne(i => i.AssignedToUser)
-            .WithMany()
-            .HasForeignKey(i => i.AssignedToUserId)
-            .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(i => i.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(i => i.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Interview>()
-            .HasOne(i => i.DecidedByUser)
-            .WithMany()
-            .HasForeignKey(i => i.DecidedByUserId)
-            .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(i => i.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(i => i.AssignedToUserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-        modelBuilder.Entity<Comment>()
-            .HasOne(c => c.Interview)
-            .WithMany(i => i.Comments)
-            .HasForeignKey(c => c.InterviewId)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(i => i.DecidedByUser)
+                .WithMany()
+                .HasForeignKey(i => i.DecidedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });                     
 
         modelBuilder.Entity<Comment>()
-            .HasOne(c => c.Author)
-            .WithMany()
-            .HasForeignKey(c => c.AuthorId)
-            .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(c => c.Interview)
+                .WithMany(i => i.Comments)
+                .HasForeignKey(c => c.InterviewId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Author)
+                .WithMany()
+                .HasForeignKey(c => c.AuthorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<InterviewStage>()
-            .HasOne(ist => ist.Interview)
-            .WithMany(i => i.InterviewStages)
-            .HasForeignKey(ist => ist.InterviewId)
-            .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(ist => ist.Interview)
+                .WithMany(i => i.InterviewStages)
+                .HasForeignKey(ist => ist.InterviewId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<CompetencyScore>()
-            .HasOne(cs => cs.Interview)
-            .WithMany(i => i.CompetencyScores)
-            .HasForeignKey(cs => cs.InterviewId)
-            .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(cs => cs.Interview)
+                .WithMany(i => i.CompetencyScores)
+                .HasForeignKey(cs => cs.InterviewId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<CompetencyScore>()
-            .HasOne(cs => cs.Competency)
-            .WithMany(c => c.CompetencyScores)
-            .HasForeignKey(cs => cs.CompetencyId)
-            .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(cs => cs.Competency)
+                .WithMany(c => c.CompetencyScores)
+                .HasForeignKey(cs => cs.CompetencyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<RefreshToken>(entity =>
-        {
-            entity.HasKey(rt => rt.TokenHash);
+            {
+                entity.HasKey(rt => rt.TokenHash);
 
-            entity.HasOne(rt => rt.User)
-                .WithMany()
-                .HasForeignKey(rt => rt.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+                entity.HasOne(rt => rt.User)
+                    .WithMany()
+                    .HasForeignKey(rt => rt.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
         modelBuilder.Entity<User>()
-            .HasIndex(u => u.Login)
-            .IsUnique();
+                .HasIndex(u => u.Login)
+                .IsUnique();
 
         modelBuilder.Entity<Skill>()
-            .HasIndex(s => s.Name)
-            .IsUnique();
+                .HasIndex(s => s.Name)
+                .IsUnique();
 
         modelBuilder.Entity<Role>()
-            .HasIndex(r => r.Name)
-            .IsUnique();
+                .HasIndex(r => r.Name)
+                .IsUnique();
 
         modelBuilder.Entity<RefreshToken>()
-            .HasIndex(rt => rt.TokenHash)
-            .IsUnique();
+                .HasIndex(rt => rt.TokenHash)
+                .IsUnique();
 
         modelBuilder.Entity<PdfTemplate>()
             .HasOne(t => t.UploadedByUser)
