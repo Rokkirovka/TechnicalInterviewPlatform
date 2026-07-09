@@ -28,6 +28,7 @@ const DECIDED_STATUSES = [
   INTERVIEW_STATUS.APPROVED,
   INTERVIEW_STATUS.REJECTED,
   INTERVIEW_STATUS.TO_NEXT_STAGE,
+  INTERVIEW_STATUS.PASSED
 ];
 
 export default function InterviewCardPage() {
@@ -48,8 +49,8 @@ export default function InterviewCardPage() {
   async function load() {
     setIsLoading(true);
     const data = await fetchInterviewById(id);
-    if (!data.comments) {
-      data.comments = buildStageCommentsTemplate(data.stages);
+    if (!data.comment) {
+      data.comment = buildStageCommentsTemplate(data.stages);
     }
     setInterview(data);
     setIsLoading(false);
@@ -197,10 +198,10 @@ export default function InterviewCardPage() {
                 label="Комментарии к собеседованию"
                 multiline
                 rows={35}
-                style={{ fontStyle: "'Courier New', monospace", fontSize: 16 }}
-                value={interview.comments}
+                style={{ fontFamily: "'Courier New', monospace", fontSize: 16 }}
+                value={interview.comment}
                 disabled={!canEditFields}
-                onChange={(e) => update('comments', e.target.value)}
+                onChange={(e) => update('comment', e.target.value)}
                 placeholder="Ключевые впечатления, риски, рекомендации…"
               />
             </div>
