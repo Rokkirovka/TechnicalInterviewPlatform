@@ -12,7 +12,7 @@ public class PdfSharpFormService : IPdfFormService
 {
     public PdfSharpFormService()
     {
-        GlobalFontSettings.FontResolver ??= new DejaVuFontResolver();
+        GlobalFontSettings.FontResolver ??= new TimesNewRomanFontResolver();
     }
 
     public IReadOnlyList<PdfTemplateFieldDto> GetFields(Stream pdfStream)

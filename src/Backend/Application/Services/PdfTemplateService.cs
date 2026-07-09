@@ -8,7 +8,7 @@ namespace Application.Services;
 public class PdfTemplateService(
     IRepository<PdfTemplate> templateRepository,
     IPdfTemplateRepository pdfTemplateRepository,
-    IRepository<Candidate> candidateRepository,
+    IPdfDocumentDataRepository pdfDocumentDataRepository,
     IObjectStorageService objectStorage,
     IPdfFormService pdfFormService)
     : IPdfTemplateService
@@ -21,7 +21,23 @@ public class PdfTemplateService(
         new() { Key = "phone", DisplayName = "Phone" },
         new() { Key = "city", DisplayName = "City" },
         new() { Key = "education", DisplayName = "Education" },
-        new() { Key = "previousJob", DisplayName = "Previous job" }
+        new() { Key = "previousJob", DisplayName = "Previous job" },
+        new() { Key = "candidateSkills", DisplayName = "Candidate skills" }
+    ];
+
+    private static readonly IReadOnlyList<CandidatePdfFieldDto> InterviewFields =
+    [
+        ..CandidateFields,
+        new() { Key = "vacancyTitle", DisplayName = "Vacancy title" },
+        new() { Key = "vacancyDepartment", DisplayName = "Vacancy department" },
+        new() { Key = "vacancyDescription", DisplayName = "Vacancy description" },
+        new() { Key = "interviewDate", DisplayName = "Interview date" },
+        new() { Key = "interviewStatus", DisplayName = "Interview status" },
+        new() { Key = "createdByName", DisplayName = "Created by" },
+        new() { Key = "interviewerName", DisplayName = "Interviewer" },
+        new() { Key = "decidedByName", DisplayName = "Decision maker" },
+        new() { Key = "competencyScores", DisplayName = "Competency scores" },
+        new() { Key = "interviewComments", DisplayName = "Interview comments" }
     ];
 
     public async Task<PdfTemplateUploadResultDto> UploadAsync(
@@ -84,6 +100,11 @@ public class PdfTemplateService(
         return Task.FromResult(CandidateFields);
     }
 
+    public Task<IReadOnlyList<CandidatePdfFieldDto>> GetInterviewFieldsAsync()
+    {
+        return Task.FromResult(InterviewFields);
+    }
+
     public async Task<PdfTemplateDto> SaveMappingsAsync(
         int templateId,
         SavePdfTemplateMappingsRequest request,
@@ -95,7 +116,7 @@ public class PdfTemplateService(
         var allowedPdfFields = template.Fields
             .Select(f => DecodePdfName(f.Name))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var allowedCandidateFields = CandidateFields.Select(f => f.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var allowedCandidateFields = InterviewFields.Select(f => f.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var mappings = request.Mappings
             .Where(m => !string.IsNullOrWhiteSpace(m.PdfFieldName) && !string.IsNullOrWhiteSpace(m.CandidateFieldKey))
@@ -142,7 +163,7 @@ public class PdfTemplateService(
         if (template.FieldMappings.Count == 0)
             throw new InvalidOperationException("PDF template does not have field mappings.");
 
-        var candidate = await candidateRepository.GetByIdAsync(candidateId)
+        var candidate = await pdfDocumentDataRepository.GetCandidateWithDetailsAsync(candidateId, ct)
             ?? throw new InvalidOperationException($"Candidate with id {candidateId} was not found.");
 
         await using var pdf = await objectStorage.GetAsync(template.ObjectName, ct);
@@ -154,6 +175,30 @@ public class PdfTemplateService(
         return new GeneratedPdfDto
         {
             FileName = $"{SanitizeFileName(template.Name)}-{candidate.Id}.pdf",
+            Content = pdfFormService.FillForm(pdf, values)
+        };
+    }
+
+    public async Task<GeneratedPdfDto> GenerateForInterviewAsync(int templateId, int interviewId, CancellationToken ct)
+    {
+        var template = await pdfTemplateRepository.GetByIdWithDetailsAsync(templateId, ct)
+            ?? throw new InvalidOperationException($"PDF template with id {templateId} was not found.");
+
+        if (template.FieldMappings.Count == 0)
+            throw new InvalidOperationException("PDF template does not have field mappings.");
+
+        var interview = await pdfDocumentDataRepository.GetInterviewWithDetailsAsync(interviewId, ct)
+            ?? throw new InvalidOperationException($"Interview with id {interviewId} was not found.");
+
+        await using var pdf = await objectStorage.GetAsync(template.ObjectName, ct);
+        var values = template.FieldMappings.ToDictionary(
+            mapping => mapping.PdfFieldName,
+            mapping => GetInterviewValue(interview, mapping.CandidateFieldKey),
+            StringComparer.OrdinalIgnoreCase);
+
+        return new GeneratedPdfDto
+        {
+            FileName = $"{SanitizeFileName(template.Name)}-interview-{interview.Id}.pdf",
             Content = pdfFormService.FillForm(pdf, values)
         };
     }
@@ -176,8 +221,75 @@ public class PdfTemplateService(
             "city" => candidate.City,
             "education" => candidate.Education,
             "previousjob" => candidate.PreviousJob,
+            "candidateskills" => FormatCandidateSkills(candidate),
             _ => null
         };
+    }
+
+    private static string? GetInterviewValue(Interview interview, string key)
+    {
+        return key.ToLowerInvariant() switch
+        {
+            "fullname" => interview.Candidate.FullName,
+            "phone" => interview.Candidate.Phone,
+            "city" => interview.Candidate.City,
+            "education" => interview.Candidate.Education,
+            "previousjob" => interview.Candidate.PreviousJob,
+            "candidateskills" => FormatCandidateSkills(interview.Candidate),
+            "vacancytitle" => interview.Vacancy.Title,
+            "vacancydepartment" => interview.Vacancy.Department,
+            "vacancydescription" => interview.Vacancy.Description,
+            "interviewdate" => interview.ScheduledAt.ToString("dd.MM.yyyy HH:mm"),
+            "interviewstatus" => interview.Status.ToString(),
+            "createdbyname" => interview.CreatedByUser.FullName,
+            "interviewername" => interview.AssignedToUser?.FullName,
+            "decidedbyname" => interview.DecidedByUser?.FullName,
+            "competencyscores" => FormatCompetencyScores(interview),
+            "interviewcomments" => FormatInterviewComments(interview),
+            _ => null
+        };
+    }
+
+    private static string FormatCandidateSkills(Candidate candidate)
+    {
+        if (candidate.CandidateSkills.Count == 0)
+            return string.Empty;
+
+        return string.Join(
+            Environment.NewLine,
+            candidate.CandidateSkills
+                .OrderBy(cs => cs.Skill.Category)
+                .ThenBy(cs => cs.Skill.Name)
+                .Select(cs => string.IsNullOrWhiteSpace(cs.Skill.Category)
+                    ? $"{cs.Skill.Name} - {cs.Level}"
+                    : $"{cs.Skill.Category}: {cs.Skill.Name} - {cs.Level}"));
+    }
+
+    private static string FormatCompetencyScores(Interview interview)
+    {
+        if (interview.CompetencyScores.Count == 0)
+            return string.Empty;
+
+        return string.Join(
+            Environment.NewLine,
+            interview.CompetencyScores
+                .OrderBy(score => score.Competency.Name)
+                .Select(score =>
+                    string.IsNullOrWhiteSpace(score.Comment)
+                        ? $"{score.Competency.Name} - {score.Score}"
+                        : $"{score.Competency.Name} - {score.Score}. Comment: {score.Comment}"));
+    }
+
+    private static string FormatInterviewComments(Interview interview)
+    {
+        if (interview.Comments.Count == 0)
+            return string.Empty;
+
+        return string.Join(
+            Environment.NewLine,
+            interview.Comments
+                .OrderBy(comment => comment.CreatedAt)
+                .Select(comment => $"{comment.Author.FullName}: {comment.Content}"));
     }
 
     private static PdfTemplateUploadResultDto ToUploadResult(PdfTemplate template)

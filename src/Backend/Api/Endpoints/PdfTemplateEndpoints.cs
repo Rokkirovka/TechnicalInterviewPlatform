@@ -1,4 +1,5 @@
 using Api.Auth;
+using Api.Endpoints.Requests;
 using Api.Helpers;
 using Application.Dtos;
 using Application.Interfaces;
@@ -36,6 +37,11 @@ public static class PdfTemplateEndpoints
             .WithSummary("Get candidate fields available for PDF mapping")
             .RequireAuthorization(RoleBasedPolicies.Admin);
 
+        group.MapGet("/interview-fields", GetInterviewFieldsAsync)
+            .WithName("GetInterviewPdfFields")
+            .WithSummary("Get interview fields available for PDF mapping")
+            .RequireAuthorization(RoleBasedPolicies.Admin);
+
         group.MapPut("/{templateId:int}/mappings", SaveMappingsAsync)
             .WithName("SavePdfTemplateMappings")
             .WithSummary("Save candidate-to-PDF field mappings")
@@ -44,6 +50,11 @@ public static class PdfTemplateEndpoints
         group.MapGet("/{templateId:int}/candidates/{candidateId:int}", GenerateAsync)
             .WithName("GenerateCandidatePdf")
             .WithSummary("Generate filled candidate PDF")
+            .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
+
+        group.MapGet("/{templateId:int}/interviews/{interviewId:int}", GenerateForInterviewAsync)
+            .WithName("GenerateInterviewPdf")
+            .WithSummary("Generate filled interview PDF")
             .RequireAuthorization(RoleBasedPolicies.AdminAndHr);
 
         group.MapDelete("/{templateId:int}", DeleteAsync)
@@ -90,6 +101,12 @@ public static class PdfTemplateEndpoints
         return Results.Ok(fields);
     }
 
+    private static async Task<IResult> GetInterviewFieldsAsync(IPdfTemplateService service)
+    {
+        var fields = await service.GetInterviewFieldsAsync();
+        return Results.Ok(fields);
+    }
+
     private static async Task<IResult> SaveMappingsAsync(
         int templateId,
         [FromBody] SavePdfTemplateMappingsRequest request,
@@ -110,6 +127,16 @@ public static class PdfTemplateEndpoints
         return Results.File(result.Content, result.ContentType, result.FileName);
     }
 
+    private static async Task<IResult> GenerateForInterviewAsync(
+        int templateId,
+        int interviewId,
+        IPdfTemplateService service,
+        CancellationToken ct)
+    {
+        var result = await service.GenerateForInterviewAsync(templateId, interviewId, ct);
+        return Results.File(result.Content, result.ContentType, result.FileName);
+    }
+
     private static async Task<IResult> DeleteAsync(
         int templateId,
         IPdfTemplateService service,
@@ -118,18 +145,4 @@ public static class PdfTemplateEndpoints
         await service.DeleteAsync(templateId, ct);
         return Results.NoContent();
     }
-}
-
-/// <summary>
-/// </summary>
-public class UploadPdfTemplateRequest
-{
-    /// <summary>
-    /// </summary>
-    public IFormFile File { get; set; } = null!;
-
-    /// <summary>
-    /// Optional template display name.
-    /// </summary>
-    public string? Name { get; set; }
 }

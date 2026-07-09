@@ -46,6 +46,7 @@ builder.Services.AddScoped<IInterviewStageService, InterviewStageService>();
 builder.Services.AddScoped<ICompetencyScoreService, CompetencyScoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPdfTemplateRepository, PdfTemplateRepository>();
+builder.Services.AddScoped<IPdfDocumentDataRepository, PdfDocumentDataRepository>();
 builder.Services.AddScoped<IObjectStorageService, MinioObjectStorageService>();
 builder.Services.AddScoped<IPdfFormService, PdfSharpFormService>();
 builder.Services.AddScoped<IPdfTemplateService, PdfTemplateService>();
@@ -61,6 +62,10 @@ using (var scope = app.Services.CreateScope())
     var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     await DbContextSeed.SeedAsync(context, passwordHasher, configuration);
+    
+    var objectStorage = scope.ServiceProvider.GetRequiredService<IObjectStorageService>();
+    var pdfFormService = scope.ServiceProvider.GetRequiredService<IPdfFormService>();
+    await PdfTemplateSeed.SeedAsync(context, objectStorage, pdfFormService);
 }
 
 if (app.Environment.IsDevelopment())
