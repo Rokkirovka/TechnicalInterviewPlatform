@@ -10,7 +10,10 @@ public class CandidateRepository(ApplicationDbContext context)
     public async Task<IReadOnlyList<Candidate>> SearchAsync(string? search, bool showArchived)
     {
         var query = search is not null 
-            ? DbSet.Where(c => EF.Functions.ILike(c.FullName, $"%{search}%")) 
+            ? DbSet.Where(c =>
+                EF.Functions.ILike(c.FirstName, $"%{search}%") ||
+                EF.Functions.ILike(c.LastName, $"%{search}%") ||
+                EF.Functions.ILike(c.MiddleName, $"%{search}%")) 
             : DbSet;
         
         query = showArchived

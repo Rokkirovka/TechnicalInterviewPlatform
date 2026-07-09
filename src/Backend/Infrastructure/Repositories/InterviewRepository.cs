@@ -15,7 +15,10 @@ public class InterviewRepository(ApplicationDbContext context)
             .AsQueryable();
 
         if (search is not null) 
-            query = query.Where(i => EF.Functions.ILike(i.Candidate.FullName, $"%{search}%"));
+            query = query.Where(i =>
+                EF.Functions.ILike(i.Candidate.FirstName, $"%{search}%") ||
+                EF.Functions.ILike(i.Candidate.LastName, $"%{search}%") ||
+                EF.Functions.ILike(i.Candidate.MiddleName, $"%{search}%"));
 
         query = showArchived
             ? query.Where(i => i.DeletedAt != null)
