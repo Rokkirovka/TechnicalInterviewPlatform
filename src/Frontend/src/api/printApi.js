@@ -1,4 +1,4 @@
-import { API_BASE_URL, ApiError, extractErrorMessage } from './client';
+import { ApiError, extractErrorMessage } from './client';
 
 async function openPdf(url, notFoundMessage, successMessage) {
   const response = await fetch(url, {
@@ -23,7 +23,7 @@ async function openPdf(url, notFoundMessage, successMessage) {
 
 export async function printCandidateCard(candidateId) {
   return openPdf(
-      `${API_BASE_URL}/candidates/${candidateId}/pdf`,
+      `/pdf-templates/2/candidates/${candidateId}`,
       'Кандидат не найден',
       'Карточка кандидата открыта в новой вкладке.'
   );
@@ -31,7 +31,7 @@ export async function printCandidateCard(candidateId) {
 
 export async function printInvite(candidateId) {
   return openPdf(
-      `${API_BASE_URL}/candidates/${candidateId}/invite-pdf`,
+      `/pdf-templates/4/candidates/${candidateId}`,
       'Кандидат не найден',
       'Приглашение открыто в новой вкладке.'
   );
@@ -39,7 +39,7 @@ export async function printInvite(candidateId) {
 
 export async function printReject(candidateId) {
   return openPdf(
-      `${API_BASE_URL}/candidates/${candidateId}/reject-pdf`,
+      `/pdf-templates/3/candidates/${candidateId}`,
       'Кандидат не найден',
       'Отказ открыт в новой вкладке.'
   );
@@ -47,7 +47,7 @@ export async function printReject(candidateId) {
 
 export async function printProtocol(interviewId) {
   return openPdf(
-      `${API_BASE_URL}/interviews/${interviewId}/protocol-pdf`,
+      `/pdf-templates/1/interviews/${interviewId}`,
       'Собеседование не найдено',
       'Протокол собеседования открыт в новой вкладке.'
   );
