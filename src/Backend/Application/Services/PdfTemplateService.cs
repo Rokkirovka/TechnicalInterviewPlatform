@@ -85,8 +85,8 @@ public class PdfTemplateService(
             }).ToList()
         };
 
-        var saved = await templateRepository.AddAsync(template);
-        return ToUploadResult(saved);
+        await templateRepository.AddAsync(template);
+        return ToUploadResult(template);
     }
 
     public async Task<IReadOnlyList<PdfTemplateDto>> GetAvailableAsync(CancellationToken ct)

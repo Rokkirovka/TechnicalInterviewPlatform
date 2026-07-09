@@ -9,6 +9,7 @@ namespace Api.Auth.Services;
 /// <param name="tokenService"></param>
 /// <param name="userRepository"></param>
 /// <param name="passwordHasher"></param>
+/// <param name="logger"></param>
 public class AuthService(
     ITokenService tokenService,
     IUserRepository userRepository, 
