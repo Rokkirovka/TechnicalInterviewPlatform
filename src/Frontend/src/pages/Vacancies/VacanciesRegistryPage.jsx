@@ -64,10 +64,10 @@ export default function VacanciesRegistryPage() {
       title: 'Компетенции для матрицы',
       render: (v) => (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {v.competencyCount > 0 ? (
+          {v.competencies.length > 0 ? (
               <Badge tone="info">{v.competencyCount} шт.</Badge>
           ) : (
-              <Badge tone="neutral">не заданы — общий шаблон</Badge>
+              <Badge tone="neutral">не заданы</Badge>
           )}
           {v.archived && <Badge tone="neutral">В архиве</Badge>}
         </div>
