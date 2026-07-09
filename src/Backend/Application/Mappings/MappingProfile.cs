@@ -79,7 +79,9 @@ public class MappingProfile : Profile
         CreateMap<UpdateInterviewRequest, Interview>()
             .ForMember(dest => dest.ScheduledAt, opt => opt.MapFrom(src => src.ScheduledAt));
 
-        CreateMap<InterviewStage, InterviewStageDto>();
+        CreateMap<InterviewStage, InterviewStageDto>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.StageName))
+            .ForMember(dest => dest.StageNumber, opt => opt.MapFrom(src => src.OrderNumber));
         CreateMap<CreateInterviewStageRequest, InterviewStage>()
             .ForMember(dest => dest.OrderNumber, opt => opt.MapFrom(src => src.StageNumber))
             .ForMember(dest => dest.StageName, opt => opt.MapFrom(src => src.Name));
