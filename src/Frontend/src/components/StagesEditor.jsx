@@ -2,7 +2,6 @@ import Input from './ui/Input';
 import Button from './ui/Button';
 import styles from './forms.module.css';
 
-// Редактор этапов собеседования: таблица "Номер этапа / Название / Описание".
 export default function StagesEditor({ stages, onChange }) {
   function updateStage(index, field, value) {
     const updated = stages.map((stage, i) =>

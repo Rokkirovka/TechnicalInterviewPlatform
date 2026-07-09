@@ -15,7 +15,7 @@ import {
   INTERVIEW_STATUS_TONE,
   DECISION_LABELS,
 } from '../../utils/constants';
-import { formatDateTime, buildStageCommentsTemplate } from '../../utils/format';
+import { buildStageCommentsTemplate } from '../../utils/format';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';

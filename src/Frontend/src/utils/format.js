@@ -1,10 +1,3 @@
-export function formatFullName(person) {
-  if (!person) return '';
-  return [person.lastName, person.firstName, person.middleName]
-    .filter(Boolean)
-    .join(' ');
-}
-
 export function formatDateTime(isoString) {
   if (!isoString) return '—';
   const date = new Date(isoString);

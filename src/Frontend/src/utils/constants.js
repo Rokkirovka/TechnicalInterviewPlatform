@@ -65,8 +65,3 @@ export const ARCHIVE_REASON_SUGGESTIONS = [
   'Создано по ошибке',
   'Больше не актуально',
 ];
-
-export const STORAGE_KEYS = {
-  DB: 'itp_mock_db_v1',
-  AUTH: 'itp_auth_v1',
-};

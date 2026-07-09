@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { fetchCandidateById, updateCandidate, fetchInterviewsOfCandidate } from '../../api/candidatesApi';
 import { fetchSkills, createSkill } from '../../api/skillsApi.js';
-import { printCandidateCard, printInvite, printReject } from '../../api/printApi';
+import { printCandidateCard } from '../../api/printApi';
 import { useAuth } from '../../context/AuthContext';
 import {
   ROLES,
