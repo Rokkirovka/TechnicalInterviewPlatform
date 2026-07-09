@@ -23,7 +23,8 @@ public class TokenService(
     IRefreshTokenRepository refreshTokenRepository,
     IUserRepository userRepository,
     IOptions<JwtSettings> jwtSettings,
-    IMapper mapper
+    IMapper mapper,
+    ILogger<TokenService> logger
     ) : ITokenService
 {
     /// <summary>
@@ -56,25 +57,38 @@ public class TokenService(
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
-            throw new ValidationException("Refresh or access token is required");
+            throw new ArgumentException("Refresh or access token is required");
         }
 
         var hashedToken = TokenHasher.HashToken(refreshToken);
         var storedRefreshToken = await refreshTokenRepository.GetByHashedTokenAsync(hashedToken, ct);
         if (storedRefreshToken is not { IsValid: true })
         {
+            logger.LogWarning("Refresh-токен {RefreshToken} недействителен", refreshToken);
+            
             throw new UnauthorizedAccessException("Invalid refresh token");
         }
 
-        var user = await userRepository.GetByIdAsync(storedRefreshToken.UserId);
-        if (user is not { IsActive: true })
+        var user = await userRepository.GetWithRolesAsync(storedRefreshToken.UserId);
+        if (user == null)
         {
-            throw new UnauthorizedAccessException("User not found or inactive");
+            throw new KeyNotFoundException("User not found or inactive");
         }
 
+        if (!user.IsActive)
+        {
+            logger.LogInformation("Пользователь {UserId} неактивен", user.Id);
+            
+            throw new UnauthorizedAccessException("User not found or inactive");
+        }
+        
         await refreshTokenRepository.DeleteAsync(storedRefreshToken, ct);
 
-        return await GenerateTokensAsync(user, ct);
+        var result = await GenerateTokensAsync(user, ct);
+        
+        logger.LogInformation("Пользователь {UserId} успешно обновил токены.", user.Id);
+        
+        return result;
     }
 
     /// <summary>
@@ -96,9 +110,11 @@ public class TokenService(
 
         if (token == null)
         {
+            logger.LogWarning("Попытка отзыва несуществующего refresh-токена");
             return;
         }
 
+        logger.LogInformation("Refresh-токен пользователя {UserId} был отозван", token.UserId);
         await refreshTokenRepository.DeleteAsync(token, ct);
     }
 
@@ -111,6 +127,8 @@ public class TokenService(
     public async Task RevokeAllTokensAsync(int userId, CancellationToken ct)
     {
         var tokens = await refreshTokenRepository.GetValidUserTokensAsync(userId, ct);
+
+        logger.LogInformation("Отзывается {TokenCount} refresh-токенов пользователя {UserId}", tokens.Count, userId);
 
         foreach (var token in tokens)
         {

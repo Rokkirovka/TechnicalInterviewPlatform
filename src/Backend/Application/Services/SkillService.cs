@@ -2,12 +2,14 @@ using Application.Dtos;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
 public class SkillService(
     ISkillRepository skillRepository,
-    IMapper mapper) : ISkillService
+    IMapper mapper,
+    ILogger<SkillService> logger) : ISkillService
 {
     public async Task<IReadOnlyList<SkillDto>> GetAllAsync()
     {
@@ -19,7 +21,11 @@ public class SkillService(
     {
         var skill = mapper.Map<Skill>(request);
         await skillRepository.AddAsync(skill);
-        return mapper.Map<SkillDto>(skill);
+        var result = mapper.Map<SkillDto>(skill);
+
+        logger.LogInformation("навык {SkillId} был создан", result.Id);
+
+        return result;
     }
 
     public async Task<SkillDto> UpdateAsync(int id, UpdateSkillRequest request)
@@ -28,6 +34,10 @@ public class SkillService(
         if (skill == null) throw new Exception($"Навык с id {id} не найден");
         mapper.Map(request, skill);
         await skillRepository.UpdateAsync(skill);
-        return mapper.Map<SkillDto>(skill);
+        var result = mapper.Map<SkillDto>(skill);
+
+        logger.LogInformation("навык {SkillId} был обновлён", result.Id);
+
+        return result;
     }
 }
