@@ -9,7 +9,7 @@ COPY Domain/*.csproj Domain/
 COPY Infrastructure/*.csproj Infrastructure/
 COPY Application/*.csproj Application/
 
-RUN dotnet restore
+RUN dotnet restore Api/Api.csproj
 
 COPY . .
 
