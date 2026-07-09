@@ -7,6 +7,7 @@ public class VacancyDto : BaseDto
     public string Department { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public List<VacancyCompetencyDto> Competencies { get; set; } = [];
+    public bool Archived { get; set; }
 }
 
 public class VacancyCompetencyDto

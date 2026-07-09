@@ -69,7 +69,7 @@ public static class AuthEndpoints
     {
         var result = await authService.LoginAsync(loginRequest.Login, loginRequest.Password, ct);
 
-        if (!result.User.Active)
+        if (!result.User.IsActive)
         {
             return Results.Forbid();
         }
