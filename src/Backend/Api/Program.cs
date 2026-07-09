@@ -4,8 +4,11 @@ using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
 using Infrastructure;
+using Infrastructure.Pdf;
 using Infrastructure.Repositories;
+using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
+using Minio;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +26,16 @@ builder.AddAuth();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped(typeof(IDeletionLogRepository<>), typeof(DeletionLogRepository<>));
+builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection("Minio"));
+builder.Services.AddMinio(configureClient =>
+{
+    var options = builder.Configuration.GetSection("Minio").Get<MinioOptions>() ?? new MinioOptions();
+    configureClient
+        .WithEndpoint(options.Endpoint)
+        .WithCredentials(options.AccessKey, options.SecretKey)
+        .WithSSL(options.UseSsl)
+        .Build();
+});
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped(typeof(IDeletionLogRepository<>), typeof(DeletionLogRepository<>));
@@ -40,6 +53,11 @@ builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<ICompetencyService, CompetencyService>();
 builder.Services.AddScoped<IInterviewService, InterviewService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPdfTemplateRepository, PdfTemplateRepository>();
+builder.Services.AddScoped<IPdfDocumentDataRepository, PdfDocumentDataRepository>();
+builder.Services.AddScoped<IObjectStorageService, MinioObjectStorageService>();
+builder.Services.AddScoped<IPdfFormService, PdfSharpFormService>();
+builder.Services.AddScoped<IPdfTemplateService, PdfTemplateService>();
 
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile));
 
@@ -53,6 +71,10 @@ using (var scope = app.Services.CreateScope())
     var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     await DbContextSeed.SeedAsync(context, passwordHasher, configuration);
+    
+    var objectStorage = scope.ServiceProvider.GetRequiredService<IObjectStorageService>();
+    var pdfFormService = scope.ServiceProvider.GetRequiredService<IPdfFormService>();
+    await PdfTemplateSeed.SeedAsync(context, objectStorage, pdfFormService);
 }
 
 if (app.Environment.IsDevelopment())
@@ -71,6 +93,7 @@ app.UseSerilogRequestLogging();
 app.UseExceptionHandler(); 
 app.UseAuthPipeline();
 app.MapAuthEndpoints();
+app.MapPdfTemplateEndpoints();
 app.MapUserEndpoints();
 app.MapCandidateEndpoints();
 app.MapSkillsEndpoints();
