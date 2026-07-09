@@ -10,7 +10,7 @@ import { Loader } from '../../components/ui/Loader';
 import styles from '../shared/form.module.css';
 
 const EMPTY_FORM = {
-  name: '',
+  title: '',
   description: '',
   department: '',
   competencyIds: [],
@@ -54,7 +54,7 @@ export default function VacancyFormPage() {
     e.preventDefault();
     setError(null);
 
-    if (!form.name.trim()) {
+    if (!form.title.trim()) {
       setError('Укажите название вакансии');
       return;
     }
@@ -93,8 +93,8 @@ export default function VacancyFormPage() {
             <Input
               label="Название вакансии"
               required
-              value={form.name}
-              onChange={(e) => update('name', e.target.value)}
+              value={form.title}
+              onChange={(e) => update('title', e.target.value)}
             />
             <Input
               label="Отдел"

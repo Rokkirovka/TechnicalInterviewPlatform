@@ -57,7 +57,7 @@ export default function VacanciesRegistryPage() {
   }
 
   const columns = [
-    { key: 'name', title: 'Вакансия', render: (v) => <span className={styles.nameCell}>{v.name}</span> },
+    { key: 'title', title: 'Вакансия', render: (v) => <span className={styles.nameCell}>{v.title}</span> },
     { key: 'department', title: 'Отдел', render: (v) => <span className={styles.secondaryCell}>{v.department || '—'}</span> },
     {
       key: 'competencies',
@@ -120,7 +120,7 @@ export default function VacanciesRegistryPage() {
 
       {archiveTarget && (
         <ArchiveDialog
-          entityLabel={`вакансию «${archiveTarget.name}»`}
+          entityLabel={`вакансию «${archiveTarget.title}»`}
           onConfirm={handleConfirmArchive}
           onCancel={() => setArchiveTarget(null)}
         />

@@ -16,7 +16,7 @@ const EMPTY_FORM = {
   firstName: '',
   middleName: '',
   roles: [],
-  active: true,
+  isActive: true,
 };
 
 export default function UserFormPage() {
@@ -152,8 +152,8 @@ export default function UserFormPage() {
             <div className={styles.sectionGap}>
               <Checkbox
                 label="Учётная запись активна"
-                checked={form.active}
-                onChange={() => update('active', !form.active)}
+                checked={form.isActive}
+                onChange={() => update('isActive', !form.isActive)}
               />
             </div>
           )}
