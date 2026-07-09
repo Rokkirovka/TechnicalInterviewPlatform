@@ -17,7 +17,7 @@ public static class SkillsEndpoints
     /// <returns></returns>
     public static IEndpointRouteBuilder MapSkillsEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/skills")
+        var group = endpoints.MapGroup("/api/skills")
             .WithTags("Skills");
             
         group.MapGet("/", async (
