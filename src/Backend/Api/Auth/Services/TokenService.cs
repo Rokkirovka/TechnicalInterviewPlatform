@@ -1,0 +1,156 @@
+using System.ComponentModel.DataAnnotations;
+using Api.Auth.Dto;
+using Api.Auth.Helpers;
+using Api.Auth.Options;
+using Api.Auth.Services;
+using Application.Dtos;
+using Application.Interfaces;
+using AutoMapper;
+using Domain.Entities;
+using Infrastructure.Auth;
+using Microsoft.Extensions.Options;
+
+namespace Api.Auth;
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="refreshTokenRepository"></param>
+/// <param name="userRepository"></param>
+/// <param name="jwtSettings"></param>
+/// <param name="mapper"></param>
+/// <param name="logger"></param>
+public class TokenService(
+    IRefreshTokenRepository refreshTokenRepository,
+    IUserRepository userRepository,
+    IOptions<JwtSettings> jwtSettings,
+    IMapper mapper,
+    ILogger<TokenService> logger
+    ) : ITokenService
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    public async Task<LoginResult> GenerateTokensAsync(User user, CancellationToken ct)
+    {
+        var accessToken = TokenGenerator.GenerateAccessToken(user, jwtSettings.Value);
+        var refresh = await CreateRefreshTokenAsync(user, ct);
+
+        return new LoginResult(new UpdateTokenEvent
+        {
+            Token = accessToken,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.Value.AccessTokenExpirationMinutes)
+        }, refresh, mapper.Map<UserDto>(user));
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="ValidationException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    public async Task<LoginResult> UpdateTokenAsync(string refreshToken, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            throw new ArgumentException("Refresh or access token is required");
+        }
+
+        var hashedToken = TokenHasher.HashToken(refreshToken);
+        var storedRefreshToken = await refreshTokenRepository.GetByHashedTokenAsync(hashedToken, ct);
+        if (storedRefreshToken is not { IsValid: true })
+        {
+            logger.LogWarning("Refresh-токен {RefreshToken} недействителен", refreshToken);
+            
+            throw new UnauthorizedAccessException("Invalid refresh token");
+        }
+
+        var user = await userRepository.GetWithRolesAsync(storedRefreshToken.UserId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException("User not found or inactive");
+        }
+
+        if (!user.IsActive)
+        {
+            logger.LogInformation("Пользователь {UserId} неактивен", user.Id);
+            
+            throw new UnauthorizedAccessException("User not found or inactive");
+        }
+        
+        await refreshTokenRepository.DeleteAsync(storedRefreshToken, ct);
+
+        var result = await GenerateTokensAsync(user, ct);
+        
+        logger.LogInformation("Пользователь {UserId} успешно обновил токены.", user.Id);
+        
+        return result;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="ValidationException"></exception>
+    public async Task RevokeRefreshTokenAsync(string refreshToken, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            throw new ValidationException("Refresh token is required");
+        }
+
+        var hashedToken = TokenHasher.HashToken(refreshToken);
+        var token = await refreshTokenRepository.GetByHashedTokenAsync(hashedToken, ct);
+
+        if (token == null)
+        {
+            logger.LogWarning("Попытка отзыва несуществующего refresh-токена");
+            return;
+        }
+
+        logger.LogInformation("Refresh-токен пользователя {UserId} был отозван", token.UserId);
+        await refreshTokenRepository.DeleteAsync(token, ct);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    public async Task RevokeAllTokensAsync(int userId, CancellationToken ct)
+    {
+        var tokens = await refreshTokenRepository.GetValidUserTokensAsync(userId, ct);
+
+        logger.LogInformation("Отзывается {TokenCount} refresh-токенов пользователя {UserId}", tokens.Count, userId);
+
+        foreach (var token in tokens)
+        {
+            await refreshTokenRepository.DeleteAsync(token, ct);
+        }
+    }
+
+    private async Task<UpdateTokenEvent> CreateRefreshTokenAsync(User user, CancellationToken ct)
+    {
+        var token = TokenGenerator.GenerateRefreshToken();
+
+        var tokenHash = TokenHasher.HashToken(token);
+        var refreshToken = new RefreshToken
+        {
+            TokenHash = tokenHash,
+            UserId = user.Id,
+            User = user,
+            ExpiresAt = DateTime.UtcNow.AddDays(jwtSettings.Value.RefreshTokenExpirationDays),
+        };
+
+        await refreshTokenRepository.StoreAsync(refreshToken, ct);
+        return new UpdateTokenEvent { Token=token, ExpiresAt=refreshToken.ExpiresAt };
+    }
+}

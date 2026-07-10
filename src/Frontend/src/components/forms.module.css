@@ -1,0 +1,142 @@
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.matrixRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.matrixRow:last-child {
+  border-bottom: none;
+}
+
+.matrixLabel {
+  font-size: 14px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.scaleGroup {
+  display: flex;
+  gap: 6px;
+}
+
+.scaleButton {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.scaleButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.scaleButtonActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.scaleButtonActive:hover {
+  color: #fff;
+}
+
+.matrixSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--color-border-strong);
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.matrixAverage {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--color-primary-dark);
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px 7px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.chipRemove {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+.chipRemove:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.addRow {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.stageRow {
+  display: grid;
+  grid-template-columns: 70px 1.3fr 130px 1.6fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.removeIconButton {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.removeIconButton:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
